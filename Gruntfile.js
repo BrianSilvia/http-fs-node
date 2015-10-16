@@ -4,8 +4,8 @@ module.exports = function(grunt) {
 
   // Add the grunt-mocha-test tasks.
   [
-    'grunt-mocha-test'
-    // add watch tasks
+    'grunt-mocha-test',
+    'grunt-contrib-watch'
   ]
   .forEach( grunt.loadNpmTasks );
 
@@ -14,21 +14,16 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
-          reporter: 'spec',
-          require: 'coverage/blanket'
+          reporter: 'spec'
         },
         src: ['test/**/*.js' ]
       },
-      coverage: {
-        options: {
-          reporter: 'html-cov',
-          // use the quiet flag to suppress the mocha console output
-          quiet: true,
-          // specify a destination file to capture the mocha
-          // output (the quiet option does not suppress this)
-          captureFile: 'coverage/codeCoverage.html',
-        },
-        src: ['test/**/*.js' ]
+    },
+
+    watch: {
+      scripts: {
+        files: [ 'src/**/*.js' , 'test/**/*.js' ],
+        tasks: ['eslint', 'mochaTest' ]
       }
     },
 
@@ -37,5 +32,5 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask( 'default' , [ 'eslint' , 'mochaTest' ]);
+  grunt.registerTask( 'default' , [ 'eslint' , 'mochaTest' , 'watch' ]);
 };
