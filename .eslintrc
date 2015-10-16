@@ -2,6 +2,7 @@
     "extends": "airbnb/base",
     "rules": {
         "indent": [2, 4, {SwitchCase: 1}],
-        "space-in-parens": [2, "always", { "exceptions": ["{}", "[]", "()"] } ]
+        "space-in-parens": [2, "always", { "exceptions": ["{}", "[]", "()"] } ],
+        "strict": 0
     }
 }
