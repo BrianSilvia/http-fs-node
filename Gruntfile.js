@@ -21,8 +21,11 @@ module.exports = function(grunt) {
     },
 
     watch: {
+      options: {
+          atBegin: true
+      },
       scripts: {
-        files: [ 'src/**/*.js' , 'test/**/*.js' ],
+        files: [ 'src/**/*.js', 'test/**/*.js' ],
         tasks: ['eslint', 'mochaTest' ]
       }
     },
@@ -32,5 +35,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask( 'default' , [ 'eslint' , 'mochaTest' , 'watch' ]);
+  grunt.registerTask( 'default', [ 'eslint' ]);
+  grunt.registerTask( 'debug', [ 'watch' ]);
 };
