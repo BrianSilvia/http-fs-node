@@ -35,6 +35,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask( 'default', [ 'eslint' ]);
+  grunt.registerTask( 'default', [ 'eslint' , 'mochaTest' ]);
   grunt.registerTask( 'debug', [ 'watch' ]);
 };
