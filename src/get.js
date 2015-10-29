@@ -2,55 +2,26 @@
 
 /* eslint no-unused-vars: 0 */
 
-// TODO: handle proper validation of the path and resource
-function handleValidation( path, resource ) {
-    let retval = true;
+module.exports.read = function read( fullPath ) {
+    // TODO: Hit w3 bucket and retrieve
 
-    if ( path === '' ) {
-        retval = 'INVALID_RESOURCE_PATH';
-    } else if ( resource === '' ) {
-        retval = 'INVALID_RESOURCE';
-    }
-
-    return retval;
-}
-
-module.exports.get = function get( path, resource ) {
-    const isValid = handleValidation( path, resource );
-
-    if ( isValid !== true ) {
-        return Promise.resolve({ status: isValid });
-    }
-
-    return Promise.resolve({});
+    return Promise.resolve({ status: 'not yet implemented' });
 };
 
-module.exports.search = function search( path, resource, query, sorting, recursive ) {
-    const isValid = handleValidation( path, resource );
+module.exports.search = function search( fullPath, data ) {
+    // TODO: Hit mongo and retrieve folder contents
 
-    if ( isValid !== true ) {
-        return Promise.resolve({ status: isValid });
-    }
-
-    return Promise.resolve({});
+    return Promise.resolve({ status: 'not yet implemented' });
 };
 
-module.exports.inspect = function inspect( path, resource, fields ) {
-    const isValid = handleValidation( path, resource );
+module.exports.inspect = function inspect( fullPath, data ) {
+    // TODO: Hit mongo and retrieve metadata for the resource
 
-    if ( isValid !== true ) {
-        return Promise.resolve({ status: isValid });
-    }
-
-    return Promise.resolve({});
+    return Promise.resolve({ status: 'not yet implemented' });
 };
 
-module.exports.download = function handleDownload( path, resource ) {
-    const isValid = handleValidation( path, resource );
+module.exports.download = function handleDownload( fullPath ) {
+    // TODO: Hit w3 bucket and retrieve, then compress
 
-    if ( isValid !== true ) {
-        return Promise.resolve({ status: isValid });
-    }
-
-    return Promise.resolve({});
+    return Promise.resolve({ status: 'not yet implemented' });
 };
