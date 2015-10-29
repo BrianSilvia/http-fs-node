@@ -1,7 +1,5 @@
 'use strict';
 
-/* eslint no-console: 0 */
-
 const utils = require( './utils.js' );
 const getModule = require( './get.js' );
 const postModule = require( './post.js' );
@@ -14,7 +12,6 @@ module.exports.validate = function validate( fullPath ) {
 
     // Trailing "/" means resource is a directory
     const isDirectory = ( fullPath.split( '/' ).pop() === '' );
-    console.log( `fullPath is still: ${fullPath}` );
 
     // Split fullPath into a path and a resource
     let path = null;
@@ -94,7 +91,7 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
     // Optional parameters: NONE
     else if ( type === 'POST' && data.action === 'bulk' ) {
         if ( !data.parameters || !data.parameters.resources ) {
-            return Promise.rejct( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
         }
 
         return postModule.bulk( fullPath, data );

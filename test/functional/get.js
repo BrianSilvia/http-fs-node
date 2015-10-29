@@ -1,7 +1,6 @@
 'use strict';
 
 /* eslint-env mocha */
-/* eslint no-unused-expressions: 0, func-names: 0 */
 
 const chai = require( 'chai' );
 const expect = chai.expect;
@@ -19,7 +18,8 @@ describe( 'GET action (default)', () => {
         const resource = 'goat.jpg';
 
         // TODO: figure out how to test multi-part form responses
-        return expect( modules.handleRequest( 'GET', path + resource )).to.eventually.have.property( 'data' );
+        return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
+            .and.eventually.have.property( 'data' );
     });
 
     it( 'should return raw text data with a valid path and text resource', () => {
@@ -27,15 +27,16 @@ describe( 'GET action (default)', () => {
         const resource = 'test.txt';
 
         // TODO: figure out how to test multi-part form responses
-        return expect( modules.handleRequest( 'GET', path + resource )).to.eventually.have.property( 'data' );
+        return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
+            .and.eventually.have.property( 'data' );
     });
 
     it( 'should return an array of resource names with a valid path and folder resource', () => {
         const path = 'valid/path/here/';
         const resource = 'validFolderName/';
 
-        return expect( modules.handleRequest( 'GET', path + resource )).to.eventually.have.property( 'data' )
-            .to.be.instanceof( Array );
+        return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
+            .and.eventually.have.property( 'data' ).to.be.instanceof( Array );
     });
 });
 
@@ -53,8 +54,8 @@ describe( 'SEARCH action', () => {
         // TODO: specify number of files
         const numFiles = 4;
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
-            .to.be.instanceof( Array ).and.have.length( numFiles );
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' ).to.be.instanceof( Array ).and.have.length( numFiles );
     });
 
     it( 'should return an empty array when nothing matches from that path', () => {
@@ -67,8 +68,8 @@ describe( 'SEARCH action', () => {
             },
         };
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
-            .to.be.instanceof( Array ).and.have.length( 0 );
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' ).to.be.instanceof( Array ).and.have.length( 0 );
     });
 
     it( 'should return a sorted array of matching resource names from that path based on sorting passed', () => {
@@ -86,7 +87,8 @@ describe( 'SEARCH action', () => {
         const numFiles = 4;
         const fileNames = [ 'a-file.txt', 'b-file.txt', 'c-file.txt', 'd-file.txt' ];
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' )
             .to.be.instanceof( Array ).and.have.length( numFiles ).and.equal( fileNames );
     });
 
@@ -105,7 +107,8 @@ describe( 'SEARCH action', () => {
         const numFiles = 4;
         const fileNames = [ 'a-file.txt', 'b-file.txt', 'c-file.txt', 'd-file.txt', 'foldername/deeperFile.txt' ];
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' )
             .to.be.instanceof( Array ).and.have.length( numFiles ).and.equal( fileNames );
     });
 });
@@ -128,7 +131,8 @@ describe( 'INSPECT action', () => {
             lastModified: '1122334455667788900',
         };
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' )
             .to.equal( result );
     });
 
@@ -148,8 +152,8 @@ describe( 'INSPECT action', () => {
             parent: 'valid/path/here/',
         };
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
-            .to.equal( result );
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' ).to.equal( result );
     });
 
     it( 'should return an object containing the specified fields and drop any invalid fields', () => {
@@ -168,8 +172,8 @@ describe( 'INSPECT action', () => {
             parent: 'valid/path/here/',
         };
 
-        return expect( modules.handleRequest( 'GET', path + resource, data )).to.eventually.have.property( 'data' )
-            .to.equal( result );
+        return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
+            .and.eventually.have.property( 'data' ).to.equal( result );
     });
 });
 
@@ -178,6 +182,7 @@ describe( 'DOWNLOAD action', () => {
         const path = 'valid/path/here/';
         const resource = 'validFile.txt';
 
-        return expect( modules.handleRequest( 'GET', path + resource )).to.eventually.have.property( 'data' );
+        return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
+            .and.eventually.have.property( 'data' );
     });
 });
