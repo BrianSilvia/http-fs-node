@@ -49,7 +49,7 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
     // Required parameters: NONE
     // Optional parameters: NONE
     if ( type === 'GET' && ( !data || !data.action || data.action === 'read' )) {
-        return getModule.search( fullPath );
+        return getModule.read( fullPath );
     }
 
     // Required parameters: query (string)

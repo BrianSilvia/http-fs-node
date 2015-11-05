@@ -7,7 +7,7 @@ const expect = chai.expect;
 const chaiaspromised = require( 'chai-as-promised' );
 const sinonchai = require( 'sinon-chai' );
 
-const modules = require( '../../src/method.js' );
+const modules = require( '../src/method.js' );
 
 chai.use( sinonchai );
 chai.use( chaiaspromised );
@@ -35,8 +35,11 @@ describe( 'GET action (default)', () => {
         const path = 'valid/path/here/';
         const resource = 'validFolderName/';
 
+        // TODO: Figure out proper number
+        const numFiles = 4;
+
         return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
-            .and.eventually.have.property( 'data' ).to.be.instanceof( Array );
+            .and.eventually.have.property( 'data' ).to.be.instanceof( Array ).and.have.length( numFiles );
     });
 });
 
@@ -51,7 +54,7 @@ describe( 'SEARCH action', () => {
             },
         };
 
-        // TODO: specify number of files
+        // TODO: Figure out proper number
         const numFiles = 4;
 
         return expect( modules.handleRequest( 'GET', path + resource, data )).to.be.fulfilled
@@ -83,7 +86,7 @@ describe( 'SEARCH action', () => {
             },
         };
 
-        // TODO: specify number of files
+        // TODO: Figure out proper number and names
         const numFiles = 4;
         const fileNames = [ 'a-file.txt', 'b-file.txt', 'c-file.txt', 'd-file.txt' ];
 
@@ -103,7 +106,7 @@ describe( 'SEARCH action', () => {
             },
         };
 
-        // TODO: specify number of files
+        // TODO: Figure out proper number and names
         const numFiles = 4;
         const fileNames = [ 'a-file.txt', 'b-file.txt', 'c-file.txt', 'd-file.txt', 'foldername/deeperFile.txt' ];
 
@@ -121,7 +124,7 @@ describe( 'INSPECT action', () => {
             action: 'inspect',
         };
 
-        // TODO: specify expected metadata
+        // TODO: Figure out proper metadata
         const result = {
             type: 'file',
             size: 1234567890,
@@ -142,7 +145,7 @@ describe( 'INSPECT action', () => {
         const data = {
             action: 'inspect',
             parameters: {
-                files: [ 'type', 'name', 'parent' ],
+                fields: [ 'type', 'name', 'parent' ],
             },
         };
 
@@ -162,7 +165,7 @@ describe( 'INSPECT action', () => {
         const data = {
             action: 'inspect',
             parameters: {
-                files: [ 'type', 'name', 'parent', 'invalid1', 'invalid2' ],
+                fields: [ 'type', 'name', 'parent', 'invalid1', 'invalid2' ],
             },
         };
 
@@ -182,6 +185,7 @@ describe( 'DOWNLOAD action', () => {
         const path = 'valid/path/here/';
         const resource = 'validFile.txt';
 
+        // TODO: figure out how to test file compression
         return expect( modules.handleRequest( 'GET', path + resource )).to.be.fulfilled
             .and.eventually.have.property( 'data' );
     });
