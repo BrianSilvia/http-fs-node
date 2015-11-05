@@ -7,7 +7,7 @@ const expect = chai.expect;
 const chaiaspromised = require( 'chai-as-promised' );
 const sinonchai = require( 'sinon-chai' );
 
-const modules = require( '../../src/method.js' );
+const modules = require( '../src/index.js' );
 
 chai.use( sinonchai );
 chai.use( chaiaspromised );
