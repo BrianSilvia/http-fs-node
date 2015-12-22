@@ -3,6 +3,7 @@
 /* eslint-env mocha */
 /* eslint no-unused-expressions: 0 */
 
+// TODO: fix wrapping-already-wrapped functions
 // TODO: add tests for normalized flags
 // TODO: update fsS3Mongo functions with correct params
 
