@@ -7,6 +7,12 @@ const putModule = require( './put.js' );
 const deleteModule = require( './delete.js' );
 
 module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
+    // TODO: standardize flags, if they were passed in
+
+    if ( !fullPath || fullPath === '' ) {
+        return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
+    }
+
     //----------------------------------
     // GET modules
     //----------------------------------
