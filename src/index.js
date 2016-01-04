@@ -6,45 +6,16 @@ const postModule = require( './post.js' );
 const putModule = require( './put.js' );
 const deleteModule = require( './delete.js' );
 
-// TODO: handle proper validation of the path and resource
-module.exports.validate = function validate( fullPath ) {
-    let retval = 'VALID';
-
-    // Trailing "/" means resource is a directory
-    const isDirectory = ( fullPath.split( '/' ).pop() === '' );
-
-    // Split fullPath into a path and a resource
-    let path = null;
-    let resource = null;
-
-    if ( isDirectory ) {
-        resource = false;
-        path = fullPath;
-    }
-    else {
-        const pathArray = fullPath.split( '/' );
-        resource = pathArray.pop();
-        path = pathArray.join( '/' );
-    }
-
-    if ( path === '' ) {
-        retval = 'INVALID_RESOURCE_PATH';
-    }
-    else if ( resource === '' ) {
-        retval = 'INVALID_RESOURCE';
-    }
-
-    return retval;
-};
-
 module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
-    const status = module.exports.validate( fullPath );
+    // TODO: standardize flags, if they were passed in
 
-    if ( status !== 'VALID' ) {
-        return Promise.reject( utils.errorResponse( status ));
+    if ( !fullPath || fullPath === '' ) {
+        return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
 
+    //----------------------------------
     // GET modules
+    //----------------------------------
 
     // Required parameters: NONE
     // Optional parameters: NONE
@@ -74,7 +45,9 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
         return getModule.download( fullPath );
     }
 
+    //----------------------------------
     // POST modules
+    //----------------------------------
 
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
@@ -107,7 +80,9 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
         return postModule.copy( fullPath, data );
     }
 
+    //----------------------------------
     // PUT modules
+    //----------------------------------
 
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
@@ -122,7 +97,7 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( type === 'PUT' && data.action === 'move' ) {
-        if ( !data.parameters || !data.parameters.content ) {
+        if ( !data.parameters || !data.parameters.destination ) {
             return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
         }
 
@@ -139,14 +114,19 @@ module.exports.handleRequest = function handleRequest( type, fullPath, data ) {
         return putModule.rename( fullPath, data );
     }
 
+    //----------------------------------
     // DELETE module
+    //----------------------------------
 
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( type === 'DELETE' && ( !data || !data.action || data.action === 'delete' )) {
-        return deleteModule.delete( fullPath );
+        return deleteModule.destroy( fullPath );
     }
 
+    //----------------------------------
     // Invalid action
+    //----------------------------------
+
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
 };
