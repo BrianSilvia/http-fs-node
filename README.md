@@ -14,7 +14,7 @@ In the future we plan to build additional data storage and framework support.
 
 # Workflow
 
-![Workflow Diagram](images/fs_workflow.jpg "Workflow Diagram")
+![Workflow Diagram](images/FS_workflow.jpg "Workflow Diagram")
 
 # Contribution
 
