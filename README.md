@@ -12,9 +12,7 @@ An express middleware wrapper and an aws+mongo data store module are both in the
 
 In the future we plan to build additional data storage and framework support.
 
-# Workflow
-
-![Workflow Diagram](images/FS_workflow.jpg "Workflow Diagram")
+![Workflow Diagram](images/FSc_workflow.jpg "Workflow Diagram")
 
 # Contribution
 
