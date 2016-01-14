@@ -3,7 +3,6 @@
 /* eslint-env mocha */
 /* eslint no-unused-expressions: 0 */
 
-// TODO: fix wrapping-already-wrapped functions
 // TODO: add tests for normalized flags
 // TODO: update fsS3Mongo functions with correct params
 
@@ -35,8 +34,11 @@ const fsS3Mongo = {
 chai.use( sinonchai );
 chai.use( chaiaspromised );
 
+// Declare some spys here to prevent rewrapping in lower blocks
 const fsS3ReadSpy = sinon.spy( fsS3Mongo, 'read' );
 const fsS3Writespy = sinon.spy( fsS3Mongo, 'write' );
+
+const userID = '12345';
 
 describe( 'GET Actions: ', () => {
     describe( 'READ', () => {
@@ -44,7 +46,7 @@ describe( 'GET Actions: ', () => {
             const path = 'valid/path/here/';
             const spy = sinon.spy( get, 'read' );
 
-            index.handleRequest( 'GET', path );
+            index.handleRequest( userID, 'GET', path );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path )).to.be.true;
@@ -55,7 +57,7 @@ describe( 'GET Actions: ', () => {
         it( 'should ultimately route to fsS3Mongo.read() with a valid path', () => {
             const path = 'valid/path/here/';
 
-            index.handleRequest( 'GET', path );
+            index.handleRequest( userID, 'GET', path );
 
             expect( fsS3ReadSpy.calledOnce ).to.be.true;
             expect( fsS3ReadSpy.calledWithExactly( path )).to.be.true;
@@ -75,7 +77,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'GET', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -92,7 +94,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'GET', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 415,
                     message: 'Invalid resource type.',
@@ -110,7 +112,7 @@ describe( 'GET Actions: ', () => {
             };
             const spy = sinon.spy( get, 'search' );
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -129,7 +131,7 @@ describe( 'GET Actions: ', () => {
             };
             const spy = sinon.spy( fsS3Mongo, 'search' );
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -149,7 +151,7 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
             };
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( getInspectSpy.calledOnce ).to.be.true;
             expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
@@ -165,7 +167,7 @@ describe( 'GET Actions: ', () => {
                 fields: [ 'name', 'parent' ],
             };
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( getInspectSpy.calledOnce ).to.be.true;
             expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
@@ -180,7 +182,7 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
             };
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( fsS3InspectSpy.calledOnce ).to.be.true;
             expect( fsS3InspectSpy.calledWithExactly( path + resource, '*' )).to.be.true;
@@ -196,7 +198,7 @@ describe( 'GET Actions: ', () => {
                 fields: [ 'name', 'parent' ],
             };
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( fsS3InspectSpy.calledOnce ).to.be.true;
             expect( fsS3InspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
@@ -214,7 +216,7 @@ describe( 'GET Actions: ', () => {
             };
             const spy = sinon.spy( get, 'download' );
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource )).to.be.true;
@@ -230,7 +232,7 @@ describe( 'GET Actions: ', () => {
             };
             // const spy = sinon.spy( fsS3Mongo, 'read' );
 
-            index.handleRequest( 'GET', path + resource, data );
+            index.handleRequest( userID, 'GET', path + resource, data );
 
             expect( fsS3ReadSpy.calledOnce ).to.be.true;
             expect( fsS3ReadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
@@ -251,7 +253,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'POST', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -268,7 +270,7 @@ describe( 'POST Actions', () => {
             };
             const spy = sinon.spy( post, 'create' );
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -285,7 +287,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( fsS3Writespy.calledOnce ).to.be.true;
             expect( fsS3Writespy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
@@ -305,7 +307,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'POST', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -326,7 +328,7 @@ describe( 'POST Actions', () => {
             };
             const spy = sinon.spy( post, 'bulk' );
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -349,7 +351,7 @@ describe( 'POST Actions', () => {
             };
 
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( fsS3Writespy.calledOnce ).to.be.true;
             expect( fsS3Writespy.calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
@@ -370,7 +372,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( fsS3Writespy.calledTwice ).to.be.true;
             expect( fsS3Writespy[0].calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
@@ -391,7 +393,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'POST', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -409,7 +411,7 @@ describe( 'POST Actions', () => {
             };
             const spy = sinon.spy( post, 'copy' );
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -428,7 +430,7 @@ describe( 'POST Actions', () => {
             };
             const spy = sinon.spy( fsS3Mongo, 'copy' );
 
-            index.handleRequest( 'POST', path + resource, data );
+            index.handleRequest( userID, 'POST', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
@@ -449,7 +451,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -466,7 +468,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( put, 'update' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -484,7 +486,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( fsS3Mongo, 'update' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
@@ -504,7 +506,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -522,7 +524,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( put, 'move' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -541,7 +543,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( fsS3Mongo, 'move' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
@@ -561,7 +563,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -579,7 +581,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( put, 'rename' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data )).to.be.true;
@@ -598,7 +600,7 @@ describe( 'PUT Actions', () => {
             };
             const spy = sinon.spy( fsS3Mongo, 'rename' );
 
-            index.handleRequest( 'PUT', path + resource, data );
+            index.handleRequest( userID, 'PUT', path + resource, data );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource, data.parameters.name )).to.be.true;
@@ -616,7 +618,7 @@ describe( 'DELETE actions', () => {
 
             const spy = sinon.spy( destroy, 'destroy' );
 
-            index.handleRequest( 'DELETE', path + resource );
+            index.handleRequest( userID, 'DELETE', path + resource );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource )).to.be.true;
@@ -630,7 +632,7 @@ describe( 'DELETE actions', () => {
 
             const spy = sinon.spy( fsS3Mongo, '_destroy' );
 
-            index.handleRequest( 'DELETE', path + resource );
+            index.handleRequest( userID, 'DELETE', path + resource );
 
             expect( spy.calledOnce ).to.be.true;
             expect( spy.calledWithExactly( path + resource )).to.be.true;
@@ -644,9 +646,7 @@ describe( 'Top level routing', () => {
     it( 'should return a 404/invalid path or resource with an empty path', () => {
         const path = '';
 
-        index.handleRequest( 'GET', path );
-
-        return expect( index.handleRequest( 'GET', path )).to.be.rejected
+        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
@@ -656,9 +656,7 @@ describe( 'Top level routing', () => {
     it( 'should return a 404/invalid path or resource with a null path', () => {
         const path = null;
 
-        index.handleRequest( 'GET', path );
-
-        return expect( index.handleRequest( 'GET', path )).to.be.rejected
+        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
@@ -672,7 +670,7 @@ describe( 'Top level routing', () => {
             action: 'invalidAction',
         };
 
-        return expect( index.handleRequest( 'GET', path + resource, data )).to.be.rejected
+        return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 501,
                 message: 'Invalid action.',

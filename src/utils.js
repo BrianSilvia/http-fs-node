@@ -1,6 +1,7 @@
 'use strict';
 
 const errObject = {
+    'NOT_ALLOWED': { status: 403, message: 'User does not have permission.' },
     'INVALID_RESOURCE': { status: 404, message: 'Resource does not exist.' },
     'INVALID_RESOURCE_PATH': { status: 404, message: 'Invalid path.' },
     'INVALID_PATH_OR_RESOURCE': { status: 404, message: 'Invalid path or resource.' },
