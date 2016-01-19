@@ -1,17 +1,13 @@
 'use strict';
 
+// TODO: Swap out stubs for ingested modules
 const utils = require( './utils.js' );
-const getModule = require( './get.js' );
-const postModule = require( './post.js' );
-const putModule = require( './put.js' );
-const deleteModule = require( './delete.js' );
+const fsS3Mongo = require( './fs-s3-mongo-stub.js' );
+const brinkbitPermissions = require( './brinkbit-permissions-stub' );
 
-// TODO: require module when it's ingested instead of this
-const brinkbitPermissions = {
-    verify: function verify() {
-        return true;
-    },
-};
+function getFlags( data ) {
+    return ( data.parameters && data.parameters.flags ) ? data.parameters.flags : [];
+}
 
 module.exports.handleRequest = function handleRequest( user, type, fullPath, data ) {
     // TODO: standardize flags, if they were passed in
@@ -20,10 +16,13 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
         return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
 
+
     //----------------------------------
     // GET modules
     //----------------------------------
 
+
+    // READ
     // Required parameters: NONE
     // Optional parameters: NONE
     if ( type === 'GET' && ( !data || !data.action || data.action === 'read' )) {
@@ -31,9 +30,11 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return getModule.read( fullPath );
+        return fsS3Mongo.read( fullPath, getFlags( ));
     }
 
+
+    // SEARCH
     // Required parameters: query (string)
     // Optional parameters: sorting (string)
     else if ( type === 'GET' && data.action === 'search' ) {
@@ -41,13 +42,18 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
         }
 
+        // TODO: ensure that resouce is a folder. Reject with INVALID_RESOUCE_TYPE if it's not.
+
         else if ( !brinkbitPermissions.verify( user, fullPath, 'search' )) {
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return getModule.search( fullPath, data );
+        const sortObj = data.parameters.sorting || {};
+        return fsS3Mongo.search( fullPath, data.parameters.query, sortObj, getFlags( ));
     }
 
+
+    // INSPECT
     // Required parameters: NONE
     // Optional parameters: fields (array of strings)
     else if ( type === 'GET' && data.action === 'inspect' ) {
@@ -55,9 +61,11 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return getModule.inspect( fullPath, data );
+        return fsS3Mongo.inspect( fullPath, data );
     }
 
+
+    // DOWNLOAD
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( type === 'GET' && data.action === 'download' ) {
@@ -65,13 +73,16 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return getModule.download( fullPath );
+        return fsS3Mongo.download( fullPath );
     }
+
 
     //----------------------------------
     // POST modules
     //----------------------------------
 
+
+    // CREATE
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( type === 'POST' && ( !data || !data.action || data.action === 'create' )) {
@@ -79,14 +90,17 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
         }
 
+        // TODO: better validation on resource formatting
+
         else if ( !brinkbitPermissions.verify( user, fullPath, 'create' )) {
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return postModule.create( fullPath, data );
+        return fsS3Mongo.create( fullPath, data );
     }
 
-    // TODO: better validation on resource formatting
+
+    // BULK
     // Required parameters: resources (object, e.g., {resourceName: content }
     // Optional parameters: NONE
     else if ( type === 'POST' && data.action === 'bulk' ) {
@@ -98,9 +112,11 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return postModule.bulk( fullPath, data );
+        return fsS3Mongo.bulk( fullPath, data );
     }
 
+
+    // COPY
     // Required parameters: destination (string)
     // Optional parameters: NONE
     else if ( type === 'POST' && data.action === 'copy' ) {
@@ -112,13 +128,16 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return postModule.copy( fullPath, data );
+        return fsS3Mongo.copy( fullPath, data );
     }
+
 
     //----------------------------------
     // PUT modules
     //----------------------------------
 
+
+    // UPDATE
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( type === 'PUT' && ( !data || !data.action || data.action === 'update' )) {
@@ -130,9 +149,11 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return putModule.update( fullPath, data );
+        return fsS3Mongo.update( fullPath, data );
     }
 
+
+    // MOVE
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( type === 'PUT' && data.action === 'move' ) {
@@ -144,9 +165,11 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return putModule.move( fullPath, data );
+        return fsS3Mongo.move( fullPath, data );
     }
 
+
+    // RENAME
     // Required parameters: name (string)
     // Optional parameters: NONE
     else if ( type === 'PUT' && data.action === 'rename' ) {
@@ -158,13 +181,16 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return putModule.rename( fullPath, data );
+        return fsS3Mongo.rename( fullPath, data );
     }
+
 
     //----------------------------------
     // DELETE module
     //----------------------------------
 
+
+    // DELETE
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( type === 'DELETE' && ( !data || !data.action || data.action === 'delete' )) {
@@ -172,12 +198,14 @@ module.exports.handleRequest = function handleRequest( user, type, fullPath, dat
             return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
         }
 
-        return deleteModule.destroy( fullPath );
+        return fsS3Mongo.destroy( fullPath );
     }
+
 
     //----------------------------------
     // Invalid action
     //----------------------------------
+
 
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
 };
