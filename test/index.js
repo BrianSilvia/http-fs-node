@@ -4,7 +4,6 @@
 /* eslint no-unused-expressions: 0 */
 
 // TODO: add tests for normalized flags
-// TODO: update fsS3Mongo functions with correct params
 
 const chai = require( 'chai' );
 const expect = chai.expect;
@@ -12,57 +11,118 @@ const chaiaspromised = require( 'chai-as-promised' );
 const sinon = require( 'sinon' );
 const sinonchai = require( 'sinon-chai' );
 
+// TODO: Swap out stub for ingested module
 const index = require( '../src/index.js' );
-const get = require( '../src/get.js' );
-const post = require( '../src/post.js' );
-const put = require( '../src/put.js' );
-const destroy = require( '../src/delete.js' );
-
-// TODO: require module when it's ingested instead of this
-const fsS3Mongo = {
-    read: function read() {},
-    search: function search() {},
-    inspect: function inspect() {},
-    write: function write() {},
-    update: function update() {},
-    move: function move() {},
-    rename: function rename() {},
-    copy: function copy() {},
-    _destroy: function _destroy() {},
-};
+const fsS3Mongo = require( '../src/fs-s3-mongo-stub.js' );
 
 chai.use( sinonchai );
 chai.use( chaiaspromised );
 
-// Declare some spys here to prevent rewrapping in lower blocks
-const fsS3ReadSpy = sinon.spy( fsS3Mongo, 'read' );
-const fsS3Writespy = sinon.spy( fsS3Mongo, 'write' );
-
 const userID = '12345';
+
+// Declare spies here to prevent rewrapping them
+let readSpy;
+let searchSpy;
+let inspectSpy;
+let downloadSpy;
+let createSpy;
+let bulkSpy;
+let copySpy;
+let updateSpy;
+let moveSpy;
+let renameSpy;
+let destroySpy;
+
+beforeEach(() => {
+    readSpy = sinon.spy( fsS3Mongo, 'read' );
+    searchSpy = sinon.spy( fsS3Mongo, 'search' );
+    inspectSpy = sinon.spy( fsS3Mongo, 'inspect' );
+    downloadSpy = sinon.spy( fsS3Mongo, 'download' );
+    createSpy = sinon.spy( fsS3Mongo, 'create' );
+    bulkSpy = sinon.spy( fsS3Mongo, 'bulk' );
+    copySpy = sinon.spy( fsS3Mongo, 'copy' );
+    updateSpy = sinon.spy( fsS3Mongo, 'update' );
+    moveSpy = sinon.spy( fsS3Mongo, 'move' );
+    renameSpy = sinon.spy( fsS3Mongo, 'rename' );
+    destroySpy = sinon.spy( fsS3Mongo, 'destroy' );
+});
+
+const actions = [ 'read', 'search', 'inspect', 'download', 'create', 'bulk', 'copy', 'update', 'move', 'rename', 'destroy' ];
+afterEach(() => {
+    actions.forEach(( action ) => {
+        fsS3Mongo[action].restore();
+    });
+});
+
+describe( 'Top level routing', () => {
+    it( 'should return a 404/invalid path or resource with an empty path', () => {
+        const path = '';
+
+        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
+            .and.eventually.deep.equal({
+                status: 404,
+                message: 'Invalid path or resource.',
+            });
+    });
+
+    it( 'should return a 404/invalid path or resource with a null path', () => {
+        const path = null;
+
+        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
+            .and.eventually.deep.equal({
+                status: 404,
+                message: 'Invalid path or resource.',
+            });
+    });
+
+    it( 'should return a 501/invalid action object when given an invalid action', () => {
+        const path = 'valid/path/here/';
+        const resource = 'test.txt';
+        const data = {
+            action: 'invalidAction',
+        };
+
+        return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+            .and.eventually.deep.equal({
+                status: 501,
+                message: 'Invalid action.',
+            });
+    });
+});
 
 describe( 'GET Actions: ', () => {
     describe( 'READ', () => {
-        it( 'should route to index.read() with a valid path', () => {
+        it( 'should route to fsS3Mongo.read() with non-empty path to a resource', () => {
             const path = 'valid/path/here/';
-            const spy = sinon.spy( get, 'read' );
+            const resource = 'goat.jpg';
 
-            index.handleRequest( userID, 'GET', path );
+            index.handleRequest( userID, 'GET', path + resource );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path )).to.be.true;
-
-            get.read.restore();
+            expect( readSpy.calledOnce ).to.be.true;
+            expect( readSpy.calledWithExactly( path )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.read() with a valid path', () => {
+        it( 'should route to fsS3Mongo.search() with non-empty path to a directory and no flags', () => {
             const path = 'valid/path/here/';
 
             index.handleRequest( userID, 'GET', path );
 
-            expect( fsS3ReadSpy.calledOnce ).to.be.true;
-            expect( fsS3ReadSpy.calledWithExactly( path )).to.be.true;
+            expect( readSpy.calledOnce ).to.be.true;
+            expect( readSpy.calledWithExactly( path, '*', null )).to.be.true;
+        });
 
-            fsS3Mongo.read.restore();
+        it( 'should route to fsS3Mongo.search() with non-empty path to a directory and pass the -r flag', () => {
+            const path = 'valid/path/here/';
+            const data = {
+                parameters: {
+                    flags: ['r'],
+                },
+            };
+
+            index.handleRequest( userID, 'GET', path, data );
+
+            expect( searchSpy.calledOnce ).to.be.true;
+            expect( searchSpy.calledWithExactly( path, '*', null, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -101,7 +161,7 @@ describe( 'GET Actions: ', () => {
                 });
         });
 
-        it( 'should route to get.search() with a valid path, resource and query parameter', () => {
+        it( 'should route to fsS3Mongo.search() with a directory path, a non-empty query, and no flags', () => {
             const path = 'valid/path/here/';
             const resource = 'folder/';
             const data = {
@@ -110,41 +170,47 @@ describe( 'GET Actions: ', () => {
                     query: '*',
                 },
             };
-            const spy = sinon.spy( get, 'search' );
 
             index.handleRequest( userID, 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            get.search.restore();
+            expect( searchSpy.calledOnce ).to.be.true;
+            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.search() with a valid path, resource and query parameter', () => {
+        it( 'should route to fsS3Mongo.search() with a directory path, a non-empty query and pass the -r flag', () => {
             const path = 'valid/path/here/';
             const resource = 'folder/';
             const data = {
                 action: 'search',
                 parameters: {
                     query: '*',
+                    flags: ['r'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'search' );
 
             index.handleRequest( userID, 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            fsS3Mongo.search.restore();
+            expect( searchSpy.calledOnce ).to.be.true;
+            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, data.parameters.flags )).to.be.true;
         });
     });
 
     describe( 'INSPECT', () => {
-        const getInspectSpy = sinon.spy( get, 'inspect' );
-        const fsS3InspectSpy = sinon.spy( fsS3Mongo, 'inspect' );
+        it( 'should return a 415/invalid type object when given a directory instead of a resource', () => {
+            const path = 'valid/path/here/';
+            const resource = 'directory/';
+            const data = {
+                action: 'inspect',
+            };
 
-        it( 'should route to get.inspect() with a valid path and resource', () => {
+            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+                .and.eventually.deep.equal({
+                    status: 415,
+                    message: 'Invalid resource type.',
+                });
+        });
+
+        it( 'should route to fsS3Mongo.inspect() with a non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'test.txt';
             const data = {
@@ -153,13 +219,11 @@ describe( 'GET Actions: ', () => {
 
             index.handleRequest( userID, 'GET', path + resource, data );
 
-            expect( getInspectSpy.calledOnce ).to.be.true;
-            expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
-
-            get.inspect.restore();
+            expect( inspectSpy.calledOnce ).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource )).to.be.true;
         });
 
-        it( 'should route to get.inspect() with a valid path and resource including any specified fields', () => {
+        it( 'should route to fsS3Mongo.inspect() with a non-empty path to a resource, including any specified fields', () => {
             const path = 'valid/path/here/';
             const resource = 'test.txt';
             const data = {
@@ -169,75 +233,23 @@ describe( 'GET Actions: ', () => {
 
             index.handleRequest( userID, 'GET', path + resource, data );
 
-            expect( getInspectSpy.calledOnce ).to.be.true;
-            expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
-
-            get.inspect.restore();
-        });
-
-        it( 'should ultimately route to fsS3Mongo.inspect() with a valid path and resource', () => {
-            const path = 'valid/path/here/';
-            const resource = 'test.txt';
-            const data = {
-                action: 'inspect',
-            };
-
-            index.handleRequest( userID, 'GET', path + resource, data );
-
-            expect( fsS3InspectSpy.calledOnce ).to.be.true;
-            expect( fsS3InspectSpy.calledWithExactly( path + resource, '*' )).to.be.true;
-
-            fsS3Mongo.inspect.restore();
-        });
-
-        it( 'should ultimately route to fsS3Mongo.inspect() with a valid path and resource including any specified fields', () => {
-            const path = 'valid/path/here/';
-            const resource = 'test.txt';
-            const data = {
-                action: 'inspect',
-                fields: [ 'name', 'parent' ],
-            };
-
-            index.handleRequest( userID, 'GET', path + resource, data );
-
-            expect( fsS3InspectSpy.calledOnce ).to.be.true;
-            expect( fsS3InspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
-
-            fsS3Mongo.inspect.restore();
+            expect( inspectSpy.calledOnce ).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
         });
     });
 
     describe( 'DOWNLOAD', () => {
-        it( 'should route to get.download() with a valid path and resource', () => {
+        it( 'should route to fsS3Mongo.download() with a non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'validFile.txt';
             const data = {
                 action: 'download',
             };
-            const spy = sinon.spy( get, 'download' );
 
             index.handleRequest( userID, 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource )).to.be.true;
-
-            get.download.restore();
-        });
-
-        it( 'should ultimately route to fsS3Mongo.read() with a valid path and resource, and compression flag', () => {
-            const path = 'valid/path/here/';
-            const resource = 'validFile.txt';
-            const data = {
-                action: 'download',
-            };
-            // const spy = sinon.spy( fsS3Mongo, 'read' );
-
-            index.handleRequest( userID, 'GET', path + resource, data );
-
-            expect( fsS3ReadSpy.calledOnce ).to.be.true;
-            expect( fsS3ReadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
-
-            fsS3Mongo.read.restore();
+            expect( downloadSpy.calledOnce ).to.be.true;
+            expect( downloadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
         });
     });
 });
@@ -260,7 +272,7 @@ describe( 'POST Actions', () => {
                 });
         });
 
-        it( 'should route to post.create() with a valid path and resource, and content', () => {
+        it( 'should route to fsS3Mongo.create() with a non-empty path to a resource and content, with no flags', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
@@ -268,34 +280,31 @@ describe( 'POST Actions', () => {
                     content: 'this content string',
                 },
             };
-            const spy = sinon.spy( post, 'create' );
 
             index.handleRequest( userID, 'POST', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            post.create.restore();
+            expect( createSpy.calledOnce ).to.be.true;
+            expect( createSpy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.create() with a valid path and resource, and content', () => {
+        it( 'should route to fsS3Mongo.create() with a non-empty path to a resource and content, and pass the -f flag', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
                 parameters: {
                     content: 'this content string',
+                    flags: ['f'],
                 },
             };
 
             index.handleRequest( userID, 'POST', path + resource, data );
 
-            expect( fsS3Writespy.calledOnce ).to.be.true;
-            expect( fsS3Writespy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
-
-            fsS3Mongo.write.restore();
+            expect( createSpy.calledOnce ).to.be.true;
+            expect( createSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
         });
     });
 
+    // TODO: Add additional validation tests for bulk()
     describe( 'BULK', () => {
         it( 'should reject with 501/invalid parameters when parameters.resources is missing', () => {
             const path = 'valid/path/here/';
@@ -314,52 +323,7 @@ describe( 'POST Actions', () => {
                 });
         });
 
-        it( 'should route to post.bulk() with a valid path and resource, and resources', () => {
-            const path = 'valid/path/here/';
-            const resource = 'uploadFolder/';
-            const data = {
-                action: 'bulk',
-                parameters: {
-                    resources: {
-                        'another_cat_picture': 'raw image data',
-                        'the_best_cats/': null,
-                    },
-                },
-            };
-            const spy = sinon.spy( post, 'bulk' );
-
-            index.handleRequest( userID, 'POST', path + resource, data );
-
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            post.bulk.restore();
-        });
-
-        // TODO: Add additional validation tests for bulk()
-
-        it( 'should ultimately route to fsS3Mongo.write() with a valid path and resource, and resources', () => {
-            const path = 'valid/path/here/';
-            const resource = 'uploadFolder/';
-            const data = {
-                action: 'bulk',
-                parameters: {
-                    resources: {
-                        'another_cat_picture': 'raw image data',
-                    },
-                },
-            };
-
-
-            index.handleRequest( userID, 'POST', path + resource, data );
-
-            expect( fsS3Writespy.calledOnce ).to.be.true;
-            expect( fsS3Writespy.calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
-
-            fsS3Mongo.write.restore();
-        });
-
-        it( 'should call into fsS3Mongo.write() once per resource, with a valid path and resource, and resources', () => {
+        it( 'should route to fsS3Mongo.bulk() with a non-empty path to a resource, and an array of resources', () => {
             const path = 'valid/path/here/';
             const resource = 'uploadFolder/';
             const data = {
@@ -374,14 +338,32 @@ describe( 'POST Actions', () => {
 
             index.handleRequest( userID, 'POST', path + resource, data );
 
-            expect( fsS3Writespy.calledTwice ).to.be.true;
-            expect( fsS3Writespy[0].calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
-            expect( fsS3Writespy[1].calledWithExactly( path + resource, { 'the_best_cats/': null })).to.be.true;
+            expect( bulkSpy.calledOnce ).to.be.true;
+            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources )).to.be.true;
+        });
 
-            fsS3Mongo.write.restore();
+        it( 'should route to fsS3Mongo.bulk() with a non-empty path to a resource, an array of resources, and pass the -f flag', () => {
+            const path = 'valid/path/here/';
+            const resource = 'uploadFolder/';
+            const data = {
+                action: 'bulk',
+                parameters: {
+                    resources: {
+                        'another_cat_picture': 'raw image data',
+                        'the_best_cats/': null,
+                    },
+                    flags: ['f'],
+                },
+            };
+
+            index.handleRequest( userID, 'POST', path + resource, data );
+
+            expect( bulkSpy.calledOnce ).to.be.true;
+            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, data.parameters.flags )).to.be.true;
         });
     });
 
+    // TODO: Add tests for the different flag combinations
     describe( 'COPY', () => {
         it( 'should reject with 501/invalid parameters when parameters.destination is missing', () => {
             const path = 'valid/path/here/';
@@ -400,7 +382,7 @@ describe( 'POST Actions', () => {
                 });
         });
 
-        it( 'should route to post.copy() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.copy() with a non-empty path to a resource and destination', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
@@ -409,33 +391,28 @@ describe( 'POST Actions', () => {
                     destination: 'valid/path/there/',
                 },
             };
-            const spy = sinon.spy( post, 'copy' );
 
             index.handleRequest( userID, 'POST', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            post.copy.restore();
+            expect( copySpy.calledOnce ).to.be.true;
+            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.copy() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.copy() with a non-empty path to a resource, a destination, and pass the -u, -f, -r flags', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
                 action: 'copy',
                 parameters: {
                     destination: 'valid/path/there/',
+                    flags: [ 'u', 'f', 'r' ],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'copy' );
 
             index.handleRequest( userID, 'POST', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
-
-            fsS3Mongo.copy.restore();
+            expect( copySpy.calledOnce ).to.be.true;
+            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
         });
     });
 });
@@ -458,7 +435,7 @@ describe( 'PUT Actions', () => {
                 });
         });
 
-        it( 'should route to put.update() with a valid path and resource, and content', () => {
+        it( 'should route to fsS3Mongo.update() with a non-empty path to a resource, and content', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
@@ -466,32 +443,27 @@ describe( 'PUT Actions', () => {
                     content: 'this content string',
                 },
             };
-            const spy = sinon.spy( put, 'update' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            put.update.restore();
+            expect( updateSpy.calledOnce ).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.update() with a valid path and resource, and content', () => {
+        it( 'should route to fsS3Mongo.update() with a non-empty path to a resource, and content, and pass the -f flag', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
                 parameters: {
                     content: 'this content string',
+                    flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'update' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
-
-            fsS3Mongo.update.restore();
+            expect( updateSpy.calledOnce ).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -513,7 +485,7 @@ describe( 'PUT Actions', () => {
                 });
         });
 
-        it( 'should route to put.move() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.move() with a non-empty path to a resource, and destination', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
@@ -522,33 +494,28 @@ describe( 'PUT Actions', () => {
                     destination: 'valid/path/there/',
                 },
             };
-            const spy = sinon.spy( put, 'move' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            put.move.restore();
+            expect( moveSpy.calledOnce ).to.be.true;
+            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.move() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.move() with a non-empty path to a resource, a destination, and passed the -f flag', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
                 action: 'move',
                 parameters: {
                     destination: 'valid/path/there/',
+                    flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'move' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
-
-            fsS3Mongo.move.restore();
+            expect( moveSpy.calledOnce ).to.be.true;
+            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -570,7 +537,7 @@ describe( 'PUT Actions', () => {
                 });
         });
 
-        it( 'should route to put.rename() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.rename() with a non-empty path to a resource, and name', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
@@ -579,101 +546,42 @@ describe( 'PUT Actions', () => {
                     name: 'billyGoat.jpg',
                 },
             };
-            const spy = sinon.spy( put, 'rename' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
-
-            put.rename.restore();
+            expect( renameSpy.calledOnce ).to.be.true;
+            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name )).to.be.true;
         });
 
-        it( 'should ultimately route to fsS3Mongo.rename() with a valid path and resource, and destination', () => {
+        it( 'should route to fsS3Mongo.rename() with a non-empty path to a resource, name, and passed the -f flag', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
             const data = {
                 action: 'rename',
                 parameters: {
                     name: 'billyGoat.jpg',
+                    flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'rename' );
 
             index.handleRequest( userID, 'PUT', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.parameters.name )).to.be.true;
-
-            fsS3Mongo.rename.restore();
+            expect( renameSpy.calledOnce ).to.be.true;
+            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, data.parameters.flags )).to.be.true;
         });
     });
 });
 
 describe( 'DELETE actions', () => {
     describe( 'DESTROY', () => {
-        it( 'should route to destroy.destroy() with a valid path and resource', () => {
+        it( 'should route to fsS3Mongo.destroy() with a non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
 
-            const spy = sinon.spy( destroy, 'destroy' );
-
             index.handleRequest( userID, 'DELETE', path + resource );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource )).to.be.true;
-
-            destroy.destroy.restore();
+            expect( destroySpy.calledOnce ).to.be.true;
+            expect( destroySpy.calledWithExactly( path + resource )).to.be.true;
         });
-
-        it( 'should ultimately route to fsS3Mongo.destroy() with a valid path and resource', () => {
-            const path = 'valid/path/here/';
-            const resource = 'goat.jpg';
-
-            const spy = sinon.spy( fsS3Mongo, '_destroy' );
-
-            index.handleRequest( userID, 'DELETE', path + resource );
-
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource )).to.be.true;
-
-            fsS3Mongo._destroy.restore();
-        });
-    });
-});
-
-describe( 'Top level routing', () => {
-    it( 'should return a 404/invalid path or resource with an empty path', () => {
-        const path = '';
-
-        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 404,
-                message: 'Invalid path or resource.',
-            });
-    });
-
-    it( 'should return a 404/invalid path or resource with a null path', () => {
-        const path = null;
-
-        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 404,
-                message: 'Invalid path or resource.',
-            });
-    });
-
-    it( 'should return a 501/invalid action object when given an invalid action', () => {
-        const path = 'valid/path/here/';
-        const resource = 'test.txt';
-        const data = {
-            action: 'invalidAction',
-        };
-
-        return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 501,
-                message: 'Invalid action.',
-            });
     });
 });
