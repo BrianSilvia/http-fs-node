@@ -18,10 +18,15 @@ module.exports.GET = function GET( user, fullPath, data ) {
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( !data || !data.action || data.action === 'read' ) {
+        let err = null;
+
         if ( !brinkbitPermissions.verify( user, fullPath, 'read' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+            err = 'NOT_ALLOWED';
         }
 
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
+        }
         else if ( utils.isDirectory( fullPath )) {
             return fsS3Mongo.search( fullPath, '*', null, getFlags( data ));
         }
@@ -34,16 +39,20 @@ module.exports.GET = function GET( user, fullPath, data ) {
     // Required parameters: query (string)
     // Optional parameters: sorting (string)
     else if ( data.action === 'search' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.query ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
         }
-
         else if ( !utils.isDirectory( fullPath )) {
-            return Promise.reject( utils.errorResponse( 'INVALID_RESOUCE_TYPE' ));
+            err = 'INVALID_RESOUCE_TYPE';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'search' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'search' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         const sorting = data.parameters.sorting || null;
@@ -55,12 +64,17 @@ module.exports.GET = function GET( user, fullPath, data ) {
     // Required parameters: NONE
     // Optional parameters: fields (array of strings)
     else if ( data.action === 'inspect' ) {
+        let err = null;
+
         if ( !brinkbitPermissions.verify( user, fullPath, 'inspect' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+            err = 'NOT_ALLOWED';
+        }
+        else if ( utils.isDirectory( fullPath )) {
+            err = 'INVALID_RESOUCE_TYPE';
         }
 
-        else if ( utils.isDirectory( fullPath )) {
-            return Promise.reject( utils.errorResponse( 'INVALID_RESOUCE_TYPE' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         const fields = ( data.parameters && data.parameters.fields ) ? data.parameters.fields : null;
@@ -72,8 +86,14 @@ module.exports.GET = function GET( user, fullPath, data ) {
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( data.action === 'download' ) {
+        let err = null;
+
         if ( !brinkbitPermissions.verify( user, fullPath, 'download' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+            err = 'NOT_ALLOWED';
+        }
+
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.download( fullPath, 'zip' );
@@ -91,14 +111,19 @@ module.exports.POST = function POST( user, fullPath, data ) {
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( !data || !data.action || data.action === 'create' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.content ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'create' )) {
+            err = 'NOT_ALLOWED';
         }
 
         // TODO: better validation on resource formatting
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'create' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.create( fullPath, data.parameters.content, getFlags( data ));
@@ -109,12 +134,17 @@ module.exports.POST = function POST( user, fullPath, data ) {
     // Required parameters: resources (object, e.g., {resourceName: content }
     // Optional parameters: NONE
     else if ( data.action === 'bulk' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.resources ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'bulk' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'bulk' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.bulk( fullPath, data.parameters.resources, getFlags( data ));
@@ -125,12 +155,17 @@ module.exports.POST = function POST( user, fullPath, data ) {
     // Required parameters: destination (string)
     // Optional parameters: NONE
     else if ( data.action === 'copy' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.destination ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'copy' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'copy' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.copy( fullPath, data.parameters.destination, getFlags( data ));
@@ -149,16 +184,20 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( !data || !data.action || data.action === 'update' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.content ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
         }
-
         else if ( utils.isDirectory( fullPath )) {
-            return Promise.reject( utils.errorResponse( 'INVALID_RESOUCE_TYPE' ));
+            err = 'INVALID_RESOUCE_TYPE';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'update' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'update' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.update( fullPath, data.parameters.content, getFlags( data ));
@@ -169,12 +208,17 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
     // Required parameters: content (multi-part form upload)
     // Optional parameters: NONE
     else if ( data.action === 'move' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.destination ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'move' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'move' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.move( fullPath, data.parameters.destination, getFlags( data ));
@@ -185,12 +229,17 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
     // Required parameters: name (string)
     // Optional parameters: NONE
     else if ( data.action === 'rename' ) {
+        let err = null;
+
         if ( !data.parameters || !data.parameters.name ) {
-            return Promise.reject( utils.errorResponse( 'INVALID_PARAMETERS' ));
+            err = 'INVALID_PARAMETERS';
+        }
+        else if ( !brinkbitPermissions.verify( user, fullPath, 'rename' )) {
+            err = 'NOT_ALLOWED';
         }
 
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'rename' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.rename( fullPath, data.parameters.name, getFlags( data ));
@@ -209,8 +258,14 @@ module.exports.DELETE = function DELETE( user, fullPath, data ) {
     // Required parameters: NONE
     // Optional parameters: NONE
     else if ( !data || !data.action || data.action === 'destroy' ) {
+        let err = null;
+
         if ( !brinkbitPermissions.verify( user, fullPath, 'destroy' )) {
-            return Promise.reject( utils.errorResponse( 'NOT_ALLOWED' ));
+            err = 'NOT_ALLOWED';
+        }
+
+        if ( err ) {
+            return Promise.reject( utils.errorResponse( err ));
         }
 
         return fsS3Mongo.destroy( fullPath );
