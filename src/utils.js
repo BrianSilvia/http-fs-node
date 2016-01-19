@@ -1,14 +1,12 @@
 'use strict';
 
 const errObject = {
-    'NOT_ALLOWED': { status: 403, message: 'User does not have permission.' },
     'INVALID_RESOURCE': { status: 404, message: 'Resource does not exist.' },
     'INVALID_RESOURCE_PATH': { status: 404, message: 'Invalid path.' },
     'INVALID_PATH_OR_RESOURCE': { status: 404, message: 'Invalid path or resource.' },
     'RESOURCE_EXISTS': { status: 409, message: 'Requested resource already exists.' },
     'REQUEST_DATA_TOO_LARGE': { status: 413, message: 'Request data too large.' },
     'INVALID_RESOUCE_TYPE': { status: 415, message: 'Invalid resource type.' },
-    'RESOURCE_FAILED_TO_SAVE': { status: 500, message: 'Resource failed to save.' },
     'INVALID_ACTION': { status: 501, message: 'Invalid action.' },
     'INVALID_PARAMETERS': { status: 501, message: 'Invalid parameters.' },
 
