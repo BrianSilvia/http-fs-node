@@ -2,6 +2,7 @@
 
 /* eslint-env mocha */
 /* eslint no-unused-expressions: 0 */
+/* eslint new-cap: 0 */
 
 // TODO: add tests for normalized flags
 
@@ -55,34 +56,34 @@ afterEach(() => {
 });
 
 describe( 'Top level routing', () => {
-    it( 'should return a 404/invalid path or resource with an empty path', () => {
+    it( 'should reject with a 404/invalid path or resource with an empty path', () => {
         const path = '';
 
-        return expect( index.get( userID, path )).to.be.rejected
+        return expect( index.GET( userID, path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
             });
     });
 
-    it( 'should return a 404/invalid path or resource with a null path', () => {
+    it( 'should reject with a 404/invalid path or resource with a null path', () => {
         const path = null;
 
-        return expect( index.get( userID, path )).to.be.rejected
+        return expect( index.GET( userID, path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
             });
     });
 
-    it( 'should return a 501/invalid action object when given an invalid action', () => {
+    it( 'should reject with a 501/invalid action object when given an invalid action', () => {
         const path = 'valid/path/here/';
         const resource = 'test.txt';
         const data = {
             action: 'invalidAction',
         };
 
-        return expect( index.get( userID, path + resource, data )).to.be.rejected
+        return expect( index.GET( userID, path + resource, data )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 501,
                 message: 'Invalid action.',
@@ -90,25 +91,25 @@ describe( 'Top level routing', () => {
     });
 });
 
-describe( 'GET Actions: ', () => {
-    describe( 'READ', () => {
+describe( 'GET API', () => {
+    describe( 'read:', () => {
         it( 'should route to fsS3Mongo.read() with non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
 
-            index.get( userID, path + resource );
+            index.GET( userID, path + resource );
 
             expect( readSpy.calledOnce ).to.be.true;
-            expect( readSpy.calledWithExactly( path )).to.be.true;
+            expect( readSpy.calledWithExactly( path + resource )).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a directory and no flags', () => {
             const path = 'valid/path/here/';
 
-            index.get( userID, path );
+            index.GET( userID, path );
 
-            expect( readSpy.calledOnce ).to.be.true;
-            expect( readSpy.calledWithExactly( path, '*', null )).to.be.true;
+            expect( searchSpy.calledOnce ).to.be.true;
+            expect( searchSpy.calledWithExactly( path, '*', null, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a directory and pass the -r flag', () => {
@@ -119,14 +120,14 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.get( userID, path, data );
+            index.GET( userID, path, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
             expect( searchSpy.calledWithExactly( path, '*', null, data.parameters.flags )).to.be.true;
         });
     });
 
-    describe( 'SEARCH', () => {
+    describe( 'search:', () => {
         it( 'should reject with 501/invalid parameters when parameters.query is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -137,14 +138,14 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.get( userID, path + resource, data )).to.be.rejected
+            return expect( index.GET( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
                 });
         });
 
-        it( 'should return a 415/invalid type object when given a resource instead of a directory', () => {
+        it( 'should reject a 415/invalid type object when given a resource instead of a directory', () => {
             const path = 'valid/path/here/';
             const resource = 'notADirectory.txt';
             const data = {
@@ -154,7 +155,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.get( userID, path + resource, data )).to.be.rejected
+            return expect( index.GET( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 415,
                     message: 'Invalid resource type.',
@@ -171,10 +172,10 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.get( userID, path + resource, data );
+            index.GET( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null )).to.be.true;
+            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with a directory path, a non-empty query and pass the -r flag', () => {
@@ -188,22 +189,22 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.get( userID, path + resource, data );
+            index.GET( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
             expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, data.parameters.flags )).to.be.true;
         });
     });
 
-    describe( 'INSPECT', () => {
-        it( 'should return a 415/invalid type object when given a directory instead of a resource', () => {
+    describe( 'inspect:', () => {
+        it( 'should reject with a 415/invalid type object when given a directory instead of a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'directory/';
             const data = {
                 action: 'inspect',
             };
 
-            return expect( index.get( userID, path + resource, data )).to.be.rejected
+            return expect( index.GET( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 415,
                     message: 'Invalid resource type.',
@@ -217,10 +218,10 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
             };
 
-            index.get( userID, path + resource, data );
+            index.GET( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + resource )).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource, null )).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.inspect() with a non-empty path to a resource, including any specified fields', () => {
@@ -228,17 +229,19 @@ describe( 'GET Actions: ', () => {
             const resource = 'test.txt';
             const data = {
                 action: 'inspect',
-                fields: [ 'name', 'parent' ],
+                parameters: {
+                    fields: [ 'name', 'parent' ],
+                },
             };
 
-            index.get( userID, path + resource, data );
+            index.GET( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource, data.parameters.fields )).to.be.true;
         });
     });
 
-    describe( 'DOWNLOAD', () => {
+    describe( 'download:', () => {
         it( 'should route to fsS3Mongo.download() with a non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'validFile.txt';
@@ -246,7 +249,7 @@ describe( 'GET Actions: ', () => {
                 action: 'download',
             };
 
-            index.get( userID, path + resource, data );
+            index.GET( userID, path + resource, data );
 
             expect( downloadSpy.calledOnce ).to.be.true;
             expect( downloadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
@@ -254,8 +257,8 @@ describe( 'GET Actions: ', () => {
     });
 });
 
-describe( 'POST Actions', () => {
-    describe( 'CREATE', () => {
+describe( 'POST API', () => {
+    describe( 'create:', () => {
         it( 'should reject with 501/invalid parameters when parameters.content is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -265,7 +268,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.post( userID, path + resource, data )).to.be.rejected
+            return expect( index.POST( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -281,10 +284,10 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
-            expect( createSpy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
+            expect( createSpy.calledWithExactly( path + resource, data.parameters.content, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.create() with a non-empty path to a resource and content, and pass the -f flag', () => {
@@ -297,7 +300,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
             expect( createSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
@@ -305,7 +308,7 @@ describe( 'POST Actions', () => {
     });
 
     // TODO: Add additional validation tests for bulk()
-    describe( 'BULK', () => {
+    describe( 'bulk:', () => {
         it( 'should reject with 501/invalid parameters when parameters.resources is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'uploadFolder/';
@@ -316,7 +319,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.post( 'POST', path + resource, data )).to.be.rejected
+            return expect( index.POST( 'POST', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -336,10 +339,10 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
-            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources )).to.be.true;
+            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.bulk() with a non-empty path to a resource, an array of resources, and pass the -f flag', () => {
@@ -356,7 +359,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
             expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, data.parameters.flags )).to.be.true;
@@ -364,7 +367,7 @@ describe( 'POST Actions', () => {
     });
 
     // TODO: Add tests for the different flag combinations
-    describe( 'COPY', () => {
+    describe( 'copy:', () => {
         it( 'should reject with 501/invalid parameters when parameters.destination is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -375,7 +378,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.post( userID, path + resource, data )).to.be.rejected
+            return expect( index.POST( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -392,10 +395,10 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
-            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
+            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.copy() with a non-empty path to a resource, a destination, and pass the -u, -f, -r flags', () => {
@@ -409,7 +412,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.post( userID, path + resource, data );
+            index.POST( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
             expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
@@ -417,8 +420,8 @@ describe( 'POST Actions', () => {
     });
 });
 
-describe( 'PUT Actions', () => {
-    describe( 'UPDATE', () => {
+describe( 'PUT API', () => {
+    describe( 'update:', () => {
         it( 'should reject with 501/invalid parameters when parameters.content is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -428,10 +431,26 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.put( userID, path + resource, data )).to.be.rejected
+            return expect( index.PUT( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
+                });
+        });
+
+        it( 'should reject with a 415/invalid type object when given a directory instead of a resource', () => {
+            const path = 'valid/path/here/';
+            const resource = 'directory/';
+            const data = {
+                parameters: {
+                    content: 'this content string',
+                },
+            };
+
+            return expect( index.PUT( userID, path + resource, data )).to.be.rejected
+                .and.eventually.deep.equal({
+                    status: 415,
+                    message: 'Invalid resource type.',
                 });
         });
 
@@ -444,10 +463,10 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents )).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, data.parameters.content, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.update() with a non-empty path to a resource, and content, and pass the -f flag', () => {
@@ -460,14 +479,14 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents, data.parameters.flags )).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
         });
     });
 
-    describe( 'MOVE', () => {
+    describe( 'move:', () => {
         it( 'should reject with 501/invalid parameters when parameters.destination is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -478,7 +497,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.put( userID, path + resource, data )).to.be.rejected
+            return expect( index.PUT( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -495,10 +514,10 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
-            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
+            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.move() with a non-empty path to a resource, a destination, and passed the -f flag', () => {
@@ -512,14 +531,14 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
             expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
         });
     });
 
-    describe( 'RENAME', () => {
+    describe( 'rename:', () => {
         it( 'should reject with 501/invalid parameters when parameters.name is missing', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
@@ -530,7 +549,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.put( userID, path + resource, data )).to.be.rejected
+            return expect( index.PUT( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -547,10 +566,10 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
-            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name )).to.be.true;
+            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.rename() with a non-empty path to a resource, name, and passed the -f flag', () => {
@@ -564,7 +583,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.put( userID, path + resource, data );
+            index.PUT( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
             expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, data.parameters.flags )).to.be.true;
@@ -572,13 +591,13 @@ describe( 'PUT Actions', () => {
     });
 });
 
-describe( 'DELETE actions', () => {
-    describe( 'DESTROY', () => {
+describe( 'DELETE API', () => {
+    describe( 'destroy:', () => {
         it( 'should route to fsS3Mongo.destroy() with a non-empty path to a resource', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
 
-            index.delete( userID, path + resource );
+            index.DELETE( userID, path + resource );
 
             expect( destroySpy.calledOnce ).to.be.true;
             expect( destroySpy.calledWithExactly( path + resource )).to.be.true;
