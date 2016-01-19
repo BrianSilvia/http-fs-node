@@ -35,6 +35,9 @@ const fsS3Mongo = {
 chai.use( sinonchai );
 chai.use( chaiaspromised );
 
+const fsS3ReadSpy = sinon.spy( fsS3Mongo, 'read' );
+const fsS3Writespy = sinon.spy( fsS3Mongo, 'write' );
+
 describe( 'GET Actions: ', () => {
     describe( 'READ', () => {
         it( 'should route to index.read() with a valid path', () => {
@@ -51,12 +54,11 @@ describe( 'GET Actions: ', () => {
 
         it( 'should ultimately route to fsS3Mongo.read() with a valid path', () => {
             const path = 'valid/path/here/';
-            const spy = sinon.spy( fsS3Mongo, 'read' );
 
             index.handleRequest( 'GET', path );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path )).to.be.true;
+            expect( fsS3ReadSpy.calledOnce ).to.be.true;
+            expect( fsS3ReadSpy.calledWithExactly( path )).to.be.true;
 
             fsS3Mongo.read.restore();
         });
@@ -137,18 +139,20 @@ describe( 'GET Actions: ', () => {
     });
 
     describe( 'INSPECT', () => {
+        const getInspectSpy = sinon.spy( get, 'inspect' );
+        const fsS3InspectSpy = sinon.spy( fsS3Mongo, 'inspect' );
+
         it( 'should route to get.inspect() with a valid path and resource', () => {
             const path = 'valid/path/here/';
             const resource = 'test.txt';
             const data = {
                 action: 'inspect',
             };
-            const spy = sinon.spy( get, 'inspect' );
 
             index.handleRequest( 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
+            expect( getInspectSpy.calledOnce ).to.be.true;
+            expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
 
             get.inspect.restore();
         });
@@ -160,12 +164,11 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
                 fields: [ 'name', 'parent' ],
             };
-            const spy = sinon.spy( get, 'inspect' );
 
             index.handleRequest( 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data )).to.be.true;
+            expect( getInspectSpy.calledOnce ).to.be.true;
+            expect( getInspectSpy.calledWithExactly( path + resource, data )).to.be.true;
 
             get.inspect.restore();
         });
@@ -176,12 +179,11 @@ describe( 'GET Actions: ', () => {
             const data = {
                 action: 'inspect',
             };
-            const spy = sinon.spy( fsS3Mongo, 'inspect' );
 
             index.handleRequest( 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, '*' )).to.be.true;
+            expect( fsS3InspectSpy.calledOnce ).to.be.true;
+            expect( fsS3InspectSpy.calledWithExactly( path + resource, '*' )).to.be.true;
 
             fsS3Mongo.inspect.restore();
         });
@@ -193,12 +195,11 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
                 fields: [ 'name', 'parent' ],
             };
-            const spy = sinon.spy( fsS3Mongo, 'inspect' );
 
             index.handleRequest( 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.fields )).to.be.true;
+            expect( fsS3InspectSpy.calledOnce ).to.be.true;
+            expect( fsS3InspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
 
             fsS3Mongo.inspect.restore();
         });
@@ -227,12 +228,12 @@ describe( 'GET Actions: ', () => {
             const data = {
                 action: 'download',
             };
-            const spy = sinon.spy( fsS3Mongo, 'read' );
+            // const spy = sinon.spy( fsS3Mongo, 'read' );
 
             index.handleRequest( 'GET', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, 'zip' )).to.be.true;
+            expect( fsS3ReadSpy.calledOnce ).to.be.true;
+            expect( fsS3ReadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
 
             fsS3Mongo.read.restore();
         });
@@ -283,12 +284,11 @@ describe( 'POST Actions', () => {
                     content: 'this content string',
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'write' );
 
             index.handleRequest( 'POST', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
+            expect( fsS3Writespy.calledOnce ).to.be.true;
+            expect( fsS3Writespy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
 
             fsS3Mongo.write.restore();
         });
@@ -347,12 +347,12 @@ describe( 'POST Actions', () => {
                     },
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'write' );
+
 
             index.handleRequest( 'POST', path + resource, data );
 
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
+            expect( fsS3Writespy.calledOnce ).to.be.true;
+            expect( fsS3Writespy.calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
 
             fsS3Mongo.write.restore();
         });
@@ -369,13 +369,12 @@ describe( 'POST Actions', () => {
                     },
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'write' );
 
             index.handleRequest( 'POST', path + resource, data );
 
-            expect( spy.calledTwice ).to.be.true;
-            expect( spy[0].calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
-            expect( spy[1].calledWithExactly( path + resource, { 'the_best_cats/': null })).to.be.true;
+            expect( fsS3Writespy.calledTwice ).to.be.true;
+            expect( fsS3Writespy[0].calledWithExactly( path + resource, { 'another_cat_picture': 'raw image data' })).to.be.true;
+            expect( fsS3Writespy[1].calledWithExactly( path + resource, { 'the_best_cats/': null })).to.be.true;
 
             fsS3Mongo.write.restore();
         });

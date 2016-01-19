@@ -12,6 +12,8 @@ An express middleware wrapper and an aws+mongo data store module are both in the
 
 In the future we plan to build additional data storage and framework support.
 
-# Workflow
+![Flowchart](images/FS_flowchart.jpg "Flowchart")
 
-![Workflow Diagram](images/fs_workflow.jpg "Workflow Diagram")
+# Contribution
+
+The guide for contributing to any of our repositories can be found [here](https://github.com/Brinkbit/brinkbit-style-es6#contributing).
