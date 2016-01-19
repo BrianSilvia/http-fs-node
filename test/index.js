@@ -58,7 +58,7 @@ describe( 'Top level routing', () => {
     it( 'should return a 404/invalid path or resource with an empty path', () => {
         const path = '';
 
-        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
+        return expect( index.get( userID, path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
@@ -68,7 +68,7 @@ describe( 'Top level routing', () => {
     it( 'should return a 404/invalid path or resource with a null path', () => {
         const path = null;
 
-        return expect( index.handleRequest( userID, 'GET', path )).to.be.rejected
+        return expect( index.get( userID, path )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
                 message: 'Invalid path or resource.',
@@ -82,7 +82,7 @@ describe( 'Top level routing', () => {
             action: 'invalidAction',
         };
 
-        return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+        return expect( index.get( userID, path + resource, data )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 501,
                 message: 'Invalid action.',
@@ -96,7 +96,7 @@ describe( 'GET Actions: ', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
 
-            index.handleRequest( userID, 'GET', path + resource );
+            index.get( userID, path + resource );
 
             expect( readSpy.calledOnce ).to.be.true;
             expect( readSpy.calledWithExactly( path )).to.be.true;
@@ -105,7 +105,7 @@ describe( 'GET Actions: ', () => {
         it( 'should route to fsS3Mongo.search() with non-empty path to a directory and no flags', () => {
             const path = 'valid/path/here/';
 
-            index.handleRequest( userID, 'GET', path );
+            index.get( userID, path );
 
             expect( readSpy.calledOnce ).to.be.true;
             expect( readSpy.calledWithExactly( path, '*', null )).to.be.true;
@@ -119,7 +119,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.handleRequest( userID, 'GET', path, data );
+            index.get( userID, path, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
             expect( searchSpy.calledWithExactly( path, '*', null, data.parameters.flags )).to.be.true;
@@ -137,7 +137,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+            return expect( index.get( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -154,7 +154,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+            return expect( index.get( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 415,
                     message: 'Invalid resource type.',
@@ -171,7 +171,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.handleRequest( userID, 'GET', path + resource, data );
+            index.get( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
             expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null )).to.be.true;
@@ -188,7 +188,7 @@ describe( 'GET Actions: ', () => {
                 },
             };
 
-            index.handleRequest( userID, 'GET', path + resource, data );
+            index.get( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
             expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, data.parameters.flags )).to.be.true;
@@ -203,7 +203,7 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
             };
 
-            return expect( index.handleRequest( userID, 'GET', path + resource, data )).to.be.rejected
+            return expect( index.get( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 415,
                     message: 'Invalid resource type.',
@@ -217,7 +217,7 @@ describe( 'GET Actions: ', () => {
                 action: 'inspect',
             };
 
-            index.handleRequest( userID, 'GET', path + resource, data );
+            index.get( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
             expect( inspectSpy.calledWithExactly( path + resource )).to.be.true;
@@ -231,7 +231,7 @@ describe( 'GET Actions: ', () => {
                 fields: [ 'name', 'parent' ],
             };
 
-            index.handleRequest( userID, 'GET', path + resource, data );
+            index.get( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
             expect( inspectSpy.calledWithExactly( path + resource, data.fields )).to.be.true;
@@ -246,7 +246,7 @@ describe( 'GET Actions: ', () => {
                 action: 'download',
             };
 
-            index.handleRequest( userID, 'GET', path + resource, data );
+            index.get( userID, path + resource, data );
 
             expect( downloadSpy.calledOnce ).to.be.true;
             expect( downloadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
@@ -265,7 +265,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
+            return expect( index.post( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -281,7 +281,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
             expect( createSpy.calledWithExactly( path + resource, data.parameters.content )).to.be.true;
@@ -297,7 +297,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
             expect( createSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
@@ -316,7 +316,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
+            return expect( index.post( 'POST', path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -336,7 +336,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
             expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources )).to.be.true;
@@ -356,7 +356,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
             expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, data.parameters.flags )).to.be.true;
@@ -375,7 +375,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'POST', path + resource, data )).to.be.rejected
+            return expect( index.post( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -392,7 +392,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
             expect( copySpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
@@ -409,7 +409,7 @@ describe( 'POST Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'POST', path + resource, data );
+            index.post( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
             expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
@@ -428,7 +428,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.put( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -444,7 +444,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
             expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents )).to.be.true;
@@ -460,7 +460,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
             expect( updateSpy.calledWithExactly( path + resource, data.parameters.contents, data.parameters.flags )).to.be.true;
@@ -478,7 +478,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.put( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -495,7 +495,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
             expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination )).to.be.true;
@@ -512,7 +512,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
             expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
@@ -530,7 +530,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            return expect( index.handleRequest( userID, 'PUT', path + resource, data )).to.be.rejected
+            return expect( index.put( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -547,7 +547,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
             expect( renameSpy.calledWithExactly( path + resource, data.parameters.name )).to.be.true;
@@ -564,7 +564,7 @@ describe( 'PUT Actions', () => {
                 },
             };
 
-            index.handleRequest( userID, 'PUT', path + resource, data );
+            index.put( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
             expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, data.parameters.flags )).to.be.true;
@@ -578,7 +578,7 @@ describe( 'DELETE actions', () => {
             const path = 'valid/path/here/';
             const resource = 'goat.jpg';
 
-            index.handleRequest( userID, 'DELETE', path + resource );
+            index.delete( userID, path + resource );
 
             expect( destroySpy.calledOnce ).to.be.true;
             expect( destroySpy.calledWithExactly( path + resource )).to.be.true;
