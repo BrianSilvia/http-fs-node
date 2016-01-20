@@ -9,7 +9,7 @@ function getFlags( data ) {
     return ( data && data.parameters && data.parameters.flags ) ? data.parameters.flags : [];
 }
 
-module.exports.GET = function GET( user, fullPath, data ) {
+module.exports.GET = function GET( userId, fullPath, data ) {
     if ( !fullPath || fullPath === '' ) {
         return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
@@ -20,7 +20,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
     else if ( !data || !data.action || data.action === 'read' ) {
         let err = null;
 
-        if ( !brinkbitPermissions.verify( user, fullPath, 'read' )) {
+        if ( !brinkbitPermissions.verify( userId, fullPath, 'read' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -28,10 +28,10 @@ module.exports.GET = function GET( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
         else if ( utils.isDirectory( fullPath )) {
-            return fsS3Mongo.search( fullPath, '*', null, getFlags( data ));
+            return fsS3Mongo.search( fullPath, userId, '*', null, getFlags( data ));
         }
 
-        return fsS3Mongo.read( fullPath );
+        return fsS3Mongo.read( fullPath, userId );
     }
 
 
@@ -47,7 +47,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
         else if ( !utils.isDirectory( fullPath )) {
             err = 'INVALID_RESOUCE_TYPE';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'search' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'search' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -56,7 +56,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
         }
 
         const sorting = data.parameters.sorting || null;
-        return fsS3Mongo.search( fullPath, data.parameters.query, sorting, getFlags( data ));
+        return fsS3Mongo.search( fullPath, userId, data.parameters.query, sorting, getFlags( data ));
     }
 
 
@@ -66,7 +66,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
     else if ( data.action === 'inspect' ) {
         let err = null;
 
-        if ( !brinkbitPermissions.verify( user, fullPath, 'inspect' )) {
+        if ( !brinkbitPermissions.verify( userId, fullPath, 'inspect' )) {
             err = 'NOT_ALLOWED';
         }
         else if ( utils.isDirectory( fullPath )) {
@@ -78,7 +78,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
         }
 
         const fields = ( data.parameters && data.parameters.fields ) ? data.parameters.fields : null;
-        return fsS3Mongo.inspect( fullPath, fields );
+        return fsS3Mongo.inspect( fullPath, userId, fields );
     }
 
 
@@ -88,7 +88,7 @@ module.exports.GET = function GET( user, fullPath, data ) {
     else if ( data.action === 'download' ) {
         let err = null;
 
-        if ( !brinkbitPermissions.verify( user, fullPath, 'download' )) {
+        if ( !brinkbitPermissions.verify( userId, fullPath, 'download' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -96,13 +96,13 @@ module.exports.GET = function GET( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.download( fullPath, 'zip' );
+        return fsS3Mongo.download( fullPath, userId, 'zip' );
     }
 
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
 };
 
-module.exports.POST = function POST( user, fullPath, data ) {
+module.exports.POST = function POST( userId, fullPath, data ) {
     if ( !fullPath || fullPath === '' ) {
         return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
@@ -116,7 +116,7 @@ module.exports.POST = function POST( user, fullPath, data ) {
         if ( !data.parameters || !data.parameters.content ) {
             err = 'INVALID_PARAMETERS';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'create' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'create' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -126,7 +126,7 @@ module.exports.POST = function POST( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.create( fullPath, data.parameters.content, getFlags( data ));
+        return fsS3Mongo.create( fullPath, userId, data.parameters.content, getFlags( data ));
     }
 
 
@@ -139,7 +139,7 @@ module.exports.POST = function POST( user, fullPath, data ) {
         if ( !data.parameters || !data.parameters.resources ) {
             err = 'INVALID_PARAMETERS';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'bulk' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'bulk' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -147,7 +147,7 @@ module.exports.POST = function POST( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.bulk( fullPath, data.parameters.resources, getFlags( data ));
+        return fsS3Mongo.bulk( fullPath, userId, data.parameters.resources, getFlags( data ));
     }
 
 
@@ -160,7 +160,7 @@ module.exports.POST = function POST( user, fullPath, data ) {
         if ( !data.parameters || !data.parameters.destination ) {
             err = 'INVALID_PARAMETERS';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'copy' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'copy' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -168,13 +168,13 @@ module.exports.POST = function POST( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.copy( fullPath, data.parameters.destination, getFlags( data ));
+        return fsS3Mongo.copy( fullPath, userId, data.parameters.destination, getFlags( data ));
     }
 
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
 };
 
-module.exports.PUT = function PUT( user, fullPath, data ) {
+module.exports.PUT = function PUT( userId, fullPath, data ) {
     if ( !fullPath || fullPath === '' ) {
         return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
@@ -192,7 +192,7 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
         else if ( utils.isDirectory( fullPath )) {
             err = 'INVALID_RESOUCE_TYPE';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'update' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'update' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -200,7 +200,7 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.update( fullPath, data.parameters.content, getFlags( data ));
+        return fsS3Mongo.update( fullPath, userId, data.parameters.content, getFlags( data ));
     }
 
 
@@ -213,7 +213,7 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
         if ( !data.parameters || !data.parameters.destination ) {
             err = 'INVALID_PARAMETERS';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'move' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'move' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -221,7 +221,7 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.move( fullPath, data.parameters.destination, getFlags( data ));
+        return fsS3Mongo.move( fullPath, userId, data.parameters.destination, getFlags( data ));
     }
 
 
@@ -234,7 +234,7 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
         if ( !data.parameters || !data.parameters.name ) {
             err = 'INVALID_PARAMETERS';
         }
-        else if ( !brinkbitPermissions.verify( user, fullPath, 'rename' )) {
+        else if ( !brinkbitPermissions.verify( userId, fullPath, 'rename' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -242,13 +242,13 @@ module.exports.PUT = function PUT( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.rename( fullPath, data.parameters.name, getFlags( data ));
+        return fsS3Mongo.rename( fullPath, userId, data.parameters.name, getFlags( data ));
     }
 
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
 };
 
-module.exports.DELETE = function DELETE( user, fullPath, data ) {
+module.exports.DELETE = function DELETE( userId, fullPath, data ) {
     if ( !fullPath || fullPath === '' ) {
         return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
     }
@@ -260,7 +260,7 @@ module.exports.DELETE = function DELETE( user, fullPath, data ) {
     else if ( !data || !data.action || data.action === 'destroy' ) {
         let err = null;
 
-        if ( !brinkbitPermissions.verify( user, fullPath, 'destroy' )) {
+        if ( !brinkbitPermissions.verify( userId, fullPath, 'destroy' )) {
             err = 'NOT_ALLOWED';
         }
 
@@ -268,7 +268,7 @@ module.exports.DELETE = function DELETE( user, fullPath, data ) {
             return Promise.reject( utils.errorResponse( err ));
         }
 
-        return fsS3Mongo.destroy( fullPath );
+        return fsS3Mongo.destroy( fullPath, userId );
     }
 
     return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));

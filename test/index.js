@@ -100,7 +100,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource );
 
             expect( readSpy.calledOnce ).to.be.true;
-            expect( readSpy.calledWithExactly( path + resource )).to.be.true;
+            expect( readSpy.calledWithExactly( path + resource, userID )).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a directory and no flags', () => {
@@ -109,7 +109,7 @@ describe( 'GET API', () => {
             index.GET( userID, path );
 
             expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path, '*', null, [ ])).to.be.true;
+            expect( searchSpy.calledWithExactly( path, userID, '*', null, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a directory and pass the -r flag', () => {
@@ -123,7 +123,7 @@ describe( 'GET API', () => {
             index.GET( userID, path, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path, '*', null, data.parameters.flags )).to.be.true;
+            expect( searchSpy.calledWithExactly( path, userID, '*', null, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -175,7 +175,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, [ ])).to.be.true;
+            expect( searchSpy.calledWithExactly( path + resource, userID, data.parameters.query, null, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.search() with a directory path, a non-empty query and pass the -r flag', () => {
@@ -192,7 +192,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource, data );
 
             expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path + resource, data.parameters.query, null, data.parameters.flags )).to.be.true;
+            expect( searchSpy.calledWithExactly( path + resource, userID, data.parameters.query, null, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -221,7 +221,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + resource, null )).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource, userID, null )).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.inspect() with a non-empty path to a resource, including any specified fields', () => {
@@ -237,7 +237,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource, data );
 
             expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + resource, data.parameters.fields )).to.be.true;
+            expect( inspectSpy.calledWithExactly( path + resource, userID, data.parameters.fields )).to.be.true;
         });
     });
 
@@ -252,7 +252,7 @@ describe( 'GET API', () => {
             index.GET( userID, path + resource, data );
 
             expect( downloadSpy.calledOnce ).to.be.true;
-            expect( downloadSpy.calledWithExactly( path + resource, 'zip' )).to.be.true;
+            expect( downloadSpy.calledWithExactly( path + resource, userID, 'zip' )).to.be.true;
         });
     });
 });
@@ -287,7 +287,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
-            expect( createSpy.calledWithExactly( path + resource, data.parameters.content, [ ])).to.be.true;
+            expect( createSpy.calledWithExactly( path + resource, userID, data.parameters.content, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.create() with a non-empty path to a resource and content, and pass the -f flag', () => {
@@ -303,7 +303,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( createSpy.calledOnce ).to.be.true;
-            expect( createSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
+            expect( createSpy.calledWithExactly( path + resource, userID, data.parameters.content, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -319,7 +319,7 @@ describe( 'POST API', () => {
                 },
             };
 
-            return expect( index.POST( 'POST', path + resource, data )).to.be.rejected
+            return expect( index.POST( userID, path + resource, data )).to.be.rejected
                 .and.eventually.deep.equal({
                     status: 501,
                     message: 'Invalid parameters.',
@@ -342,7 +342,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
-            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, [ ])).to.be.true;
+            expect( bulkSpy.calledWithExactly( path + resource, userID, data.parameters.resources, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.bulk() with a non-empty path to a resource, an array of resources, and pass the -f flag', () => {
@@ -362,7 +362,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( bulkSpy.calledOnce ).to.be.true;
-            expect( bulkSpy.calledWithExactly( path + resource, data.parameters.resources, data.parameters.flags )).to.be.true;
+            expect( bulkSpy.calledWithExactly( path + resource, userID, data.parameters.resources, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -398,7 +398,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
-            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, [ ])).to.be.true;
+            expect( copySpy.calledWithExactly( path + resource, userID, data.parameters.destination, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.copy() with a non-empty path to a resource, a destination, and pass the -u, -f, -r flags', () => {
@@ -415,7 +415,7 @@ describe( 'POST API', () => {
             index.POST( userID, path + resource, data );
 
             expect( copySpy.calledOnce ).to.be.true;
-            expect( copySpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
+            expect( copySpy.calledWithExactly( path + resource, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
         });
     });
 });
@@ -466,7 +466,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + resource, data.parameters.content, [ ])).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, userID, data.parameters.content, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.update() with a non-empty path to a resource, and content, and pass the -f flag', () => {
@@ -482,7 +482,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + resource, data.parameters.content, data.parameters.flags )).to.be.true;
+            expect( updateSpy.calledWithExactly( path + resource, userID, data.parameters.content, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -517,7 +517,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
-            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, [ ])).to.be.true;
+            expect( moveSpy.calledWithExactly( path + resource, userID, data.parameters.destination, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.move() with a non-empty path to a resource, a destination, and passed the -f flag', () => {
@@ -534,7 +534,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( moveSpy.calledOnce ).to.be.true;
-            expect( moveSpy.calledWithExactly( path + resource, data.parameters.destination, data.parameters.flags )).to.be.true;
+            expect( moveSpy.calledWithExactly( path + resource, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
         });
     });
 
@@ -569,7 +569,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
-            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, [ ])).to.be.true;
+            expect( renameSpy.calledWithExactly( path + resource, userID, data.parameters.name, [ ])).to.be.true;
         });
 
         it( 'should route to fsS3Mongo.rename() with a non-empty path to a resource, name, and passed the -f flag', () => {
@@ -586,7 +586,7 @@ describe( 'PUT API', () => {
             index.PUT( userID, path + resource, data );
 
             expect( renameSpy.calledOnce ).to.be.true;
-            expect( renameSpy.calledWithExactly( path + resource, data.parameters.name, data.parameters.flags )).to.be.true;
+            expect( renameSpy.calledWithExactly( path + resource, userID, data.parameters.name, data.parameters.flags )).to.be.true;
         });
     });
 });
@@ -600,7 +600,7 @@ describe( 'DELETE API', () => {
             index.DELETE( userID, path + resource );
 
             expect( destroySpy.calledOnce ).to.be.true;
-            expect( destroySpy.calledWithExactly( path + resource )).to.be.true;
+            expect( destroySpy.calledWithExactly( path + resource, userID )).to.be.true;
         });
     });
 });
