@@ -14,8 +14,8 @@ module.exports = configuration => {
         dataStore: dataStore,
         permissions: permissions,
 
-        GET: function GET( userId, fullPath, data ) {
-            if ( !fullPath ) {
+        GET: function GET( GUID, userId, data ) {
+            if ( !GUID ) {
                 return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
@@ -23,13 +23,29 @@ module.exports = configuration => {
             // Required parameters: NONE
             // Optional parameters: NONE
             else if ( !data || !data.action || data.action === 'read' ) {
-                return permissions.verify( fullPath, userId, 'read' )
+                return permissions.verify( GUID, userId, 'read' )
                 .then(( ) => {
-                    if ( utils.isDirectory( fullPath )) {
-                        return dataStore.search( fullPath, userId, '*', null, getFlags( data ));
-                    }
+                    return dataStore.read( GUID, getFlags( data ));
+                })
+                .catch( err => {
+                    return Promise.reject( utils.errorResponse( err ));
+                });
+            }
 
-                    return dataStore.read( fullPath, userId );
+
+            // ALIAS
+            // Required parameters: fullPath (GUID), userId
+            // Optional parameters: NONE
+            else if ( data && data.action === 'alias' ) {
+                let toReturn = null;
+
+                return dataStore.alias( GUID, userId )
+                .then( guid => {
+                    toReturn = guid;
+                    return permissions.verify( guid, 'read' );
+                })
+                .then(( ) => {
+                    return { GUID: toReturn };
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -40,21 +56,18 @@ module.exports = configuration => {
             // SEARCH
             // Required parameters: query (string)
             // Optional parameters: sorting (string)
-            else if ( data.action === 'search' ) {
+            else if ( data && data.action === 'search' ) {
                 return Promise.resolve()
                 .then(( ) => {
                     if ( !data.parameters || !data.parameters.query ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
-                    else if ( !utils.isDirectory( fullPath )) {
-                        return Promise.reject( 'INVALID_RESOUCE_TYPE' );
-                    }
 
-                    return permissions.verify( fullPath, userId, 'search' );
+                    return permissions.verify( GUID, userId, 'search' );
                 })
                 .then(( ) => {
-                    const sorting = data.parameters.sorting || null;
-                    return dataStore.search( fullPath, userId, data.parameters.query, sorting, getFlags( data ));
+                    const sorting = data.parameters.sort || null;
+                    return dataStore.search( GUID, data.parameters.query, sorting, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -65,18 +78,14 @@ module.exports = configuration => {
             // INSPECT
             // Required parameters: NONE
             // Optional parameters: fields (array of strings)
-            else if ( data.action === 'inspect' ) {
+            else if ( data && data.action === 'inspect' ) {
                 return Promise.resolve()
                 .then(( ) => {
-                    if ( utils.isDirectory( fullPath )) {
-                        return Promise.reject( 'INVALID_RESOUCE_TYPE' );
-                    }
-
-                    return permissions.verify( fullPath, userId, 'inspect' );
+                    return permissions.verify( GUID, userId, 'inspect' );
                 })
                 .then(( ) => {
                     const fields = ( data.parameters && data.parameters.fields ) ? data.parameters.fields : null;
-                    return dataStore.inspect( fullPath, userId, fields );
+                    return dataStore.inspect( GUID, fields );
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -87,10 +96,10 @@ module.exports = configuration => {
             // DOWNLOAD
             // Required parameters: NONE
             // Optional parameters: NONE
-            else if ( data.action === 'download' ) {
-                return permissions.verify( fullPath, userId, 'download' )
+            else if ( data && data.action === 'download' ) {
+                return permissions.verify( GUID, userId, 'download' )
                 .then(( ) => {
-                    return dataStore.download( fullPath, userId, 'zip' );
+                    return dataStore.download( GUID, 'zip' );
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -100,8 +109,8 @@ module.exports = configuration => {
             return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
         },
 
-        POST: function GET( userId, fullPath, data ) {
-            if ( !fullPath ) {
+        POST: function GET( GUID, userId, data ) {
+            if ( !GUID ) {
                 return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
@@ -111,14 +120,14 @@ module.exports = configuration => {
             else if ( !data || !data.action || data.action === 'create' ) {
                 return Promise.resolve()
                 .then(( ) => {
-                    if ( !data.parameters || !data.parameters.content ) {
+                    if ( !data || !data.parameters || !data.parameters.content || !data.parameters.name ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
-                    return permissions.verify( fullPath, userId, 'create' );
+                    return permissions.verify( GUID, userId, 'create' );
                 })
                 .then(( ) => {
-                    return dataStore.create( fullPath, userId, data.parameters.content, getFlags( data ));
+                    return dataStore.create( GUID, data.parameters.name, data.parameters.content, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -129,17 +138,17 @@ module.exports = configuration => {
             // BULK
             // Required parameters: resources (object, e.g., {resourceName: content }
             // Optional parameters: NONE
-            else if ( data.action === 'bulk' ) {
+            else if ( data && data.action === 'bulk' ) {
                 return Promise.resolve()
                 .then(( ) => {
                     if ( !data.parameters || !data.parameters.resources ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
-                    return permissions.verify( fullPath, userId, 'bulk' );
+                    return permissions.verify( GUID, userId, 'bulk' );
                 })
                 .then(( ) => {
-                    return dataStore.bulk( fullPath, userId, data.parameters.resources, getFlags( data ));
+                    return dataStore.bulk( GUID, data.parameters.resources, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -150,17 +159,17 @@ module.exports = configuration => {
             // COPY
             // Required parameters: destination (string)
             // Optional parameters: NONE
-            else if ( data.action === 'copy' ) {
+            else if ( data && data.action === 'copy' ) {
                 return Promise.resolve()
                 .then(( ) => {
                     if ( !data.parameters || !data.parameters.destination ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
-                    return permissions.verify( fullPath, userId, 'copy' );
+                    return permissions.verify( GUID, userId, 'copy' );
                 })
                 .then(( ) => {
-                    return dataStore.copy( fullPath, userId, data.parameters.destination, getFlags( data ));
+                    return dataStore.copy( GUID, data.parameters.destination, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -170,8 +179,8 @@ module.exports = configuration => {
             return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
         },
 
-        PUT: function PUT( userId, fullPath, data ) {
-            if ( !fullPath ) {
+        PUT: function PUT( GUID, userId, data ) {
+            if ( !GUID ) {
                 return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
@@ -185,14 +194,11 @@ module.exports = configuration => {
                     if ( !data.parameters || !data.parameters.content ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
-                    else if ( utils.isDirectory( fullPath )) {
-                        return Promise.reject( 'INVALID_RESOUCE_TYPE' );
-                    }
 
-                    return permissions.verify( fullPath, userId, 'update' );
+                    return permissions.verify( GUID, userId, 'update' );
                 })
                 .then(( ) => {
-                    return dataStore.update( fullPath, userId, data.parameters.content, getFlags( data ));
+                    return dataStore.update( GUID, data.parameters.content, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -203,17 +209,17 @@ module.exports = configuration => {
             // MOVE
             // Required parameters: content (multi-part form upload)
             // Optional parameters: NONE
-            else if ( data.action === 'move' ) {
+            else if ( data && data.action === 'move' ) {
                 return Promise.resolve()
                 .then(( ) => {
                     if ( !data.parameters || !data.parameters.destination ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
-                    return permissions.verify( fullPath, userId, 'move' );
+                    return permissions.verify( GUID, userId, 'move' );
                 })
                 .then(( ) => {
-                    return dataStore.move( fullPath, userId, data.parameters.destination, getFlags( data ));
+                    return dataStore.move( GUID, data.parameters.destination, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -224,17 +230,17 @@ module.exports = configuration => {
             // RENAME
             // Required parameters: name (string)
             // Optional parameters: NONE
-            else if ( data.action === 'rename' ) {
+            else if ( data && data.action === 'rename' ) {
                 return Promise.resolve()
                 .then(( ) => {
                     if ( !data.parameters || !data.parameters.name ) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
-                    return permissions.verify( fullPath, userId, 'rename' );
+                    return permissions.verify( GUID, userId, 'rename' );
                 })
                 .then(( ) => {
-                    return dataStore.rename( fullPath, userId, data.parameters.name, getFlags( data ));
+                    return dataStore.rename( GUID, data.parameters.name, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
@@ -244,8 +250,8 @@ module.exports = configuration => {
             return Promise.reject( utils.errorResponse( 'INVALID_ACTION' ));
         },
 
-        DELETE: function DELETE( userId, fullPath, data ) {
-            if ( !fullPath ) {
+        DELETE: function DELETE( GUID, userId, data ) {
+            if ( !GUID ) {
                 return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
@@ -254,9 +260,9 @@ module.exports = configuration => {
             // Required parameters: NONE
             // Optional parameters: NONE
             else if ( !data || !data.action || data.action === 'destroy' ) {
-                return permissions.verify( fullPath, userId, 'destroy' )
+                return permissions.verify( GUID, userId, 'destroy' )
                 .then(( ) => {
-                    return dataStore.destroy( fullPath, userId );
+                    return dataStore.destroy( GUID );
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
