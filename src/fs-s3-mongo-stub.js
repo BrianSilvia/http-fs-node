@@ -15,5 +15,5 @@ module.exports.rename = stub;
 module.exports.destroy = stub;
 
 function stub() {
-    return Promise.reject({ code: 501, message: 'Not implemented.' });
+    return Promise.resolve( 'NOT_IMPLEMENTED' );
 }

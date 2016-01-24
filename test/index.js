@@ -89,19 +89,21 @@ describe( 'GET API', () => {
             const path = 'valid/path/here/';
             const file = 'goat.jpg';
 
-            index.GET( userID, path + file );
-
-            expect( readSpy.calledOnce ).to.be.true;
-            expect( readSpy.calledWithExactly( path + file, userID )).to.be.true;
+            return index.GET( userID, path + file )
+            .then(( ) => {
+                expect( readSpy.calledOnce ).to.be.true;
+                expect( readSpy.calledWithExactly( path + file, userID )).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a folder and no flags', () => {
             const path = 'valid/path/here/';
 
-            index.GET( userID, path );
-
-            expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path, userID, '*', null, [ ])).to.be.true;
+            return index.GET( userID, path )
+            .then(( ) => {
+                expect( searchSpy.calledOnce ).to.be.true;
+                expect( searchSpy.calledWithExactly( path, userID, '*', null, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.search() with non-empty path to a folder and pass the -r flag', () => {
@@ -112,10 +114,11 @@ describe( 'GET API', () => {
                 },
             };
 
-            index.GET( userID, path, data );
-
-            expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path, userID, '*', null, data.parameters.flags )).to.be.true;
+            return index.GET( userID, path, data )
+            .then(( ) => {
+                expect( searchSpy.calledOnce ).to.be.true;
+                expect( searchSpy.calledWithExactly( path, userID, '*', null, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -164,10 +167,11 @@ describe( 'GET API', () => {
                 },
             };
 
-            index.GET( userID, path + folder, data );
-
-            expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path + folder, userID, data.parameters.query, null, [ ])).to.be.true;
+            return index.GET( userID, path + folder, data )
+            .then(( ) => {
+                expect( searchSpy.calledOnce ).to.be.true;
+                expect( searchSpy.calledWithExactly( path + folder, userID, data.parameters.query, null, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.search() with a folder a non-empty query and pass the -r flag', () => {
@@ -181,10 +185,11 @@ describe( 'GET API', () => {
                 },
             };
 
-            index.GET( userID, path + folder, data );
-
-            expect( searchSpy.calledOnce ).to.be.true;
-            expect( searchSpy.calledWithExactly( path + folder, userID, data.parameters.query, null, data.parameters.flags )).to.be.true;
+            return index.GET( userID, path + folder, data )
+            .then(( ) => {
+                expect( searchSpy.calledOnce ).to.be.true;
+                expect( searchSpy.calledWithExactly( path + folder, userID, data.parameters.query, null, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -210,10 +215,11 @@ describe( 'GET API', () => {
                 action: 'inspect',
             };
 
-            index.GET( userID, path + file, data );
-
-            expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + file, userID, null )).to.be.true;
+            return index.GET( userID, path + file, data )
+            .then(( ) => {
+                expect( inspectSpy.calledOnce ).to.be.true;
+                expect( inspectSpy.calledWithExactly( path + file, userID, null )).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.inspect() with a non-empty path to a file, including any specified fields', () => {
@@ -226,10 +232,11 @@ describe( 'GET API', () => {
                 },
             };
 
-            index.GET( userID, path + file, data );
-
-            expect( inspectSpy.calledOnce ).to.be.true;
-            expect( inspectSpy.calledWithExactly( path + file, userID, data.parameters.fields )).to.be.true;
+            return index.GET( userID, path + file, data )
+            .then(( ) => {
+                expect( inspectSpy.calledOnce ).to.be.true;
+                expect( inspectSpy.calledWithExactly( path + file, userID, data.parameters.fields )).to.be.true;
+            });
         });
     });
 
@@ -241,10 +248,11 @@ describe( 'GET API', () => {
                 action: 'download',
             };
 
-            index.GET( userID, path + file, data );
-
-            expect( downloadSpy.calledOnce ).to.be.true;
-            expect( downloadSpy.calledWithExactly( path + file, userID, 'zip' )).to.be.true;
+            return index.GET( userID, path + file, data )
+            .then(( ) => {
+                expect( downloadSpy.calledOnce ).to.be.true;
+                expect( downloadSpy.calledWithExactly( path + file, userID, 'zip' )).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.download() with a non-empty path to a folder', () => {
@@ -254,10 +262,11 @@ describe( 'GET API', () => {
                 action: 'download',
             };
 
-            index.GET( userID, path + folder, data );
-
-            expect( downloadSpy.calledOnce ).to.be.true;
-            expect( downloadSpy.calledWithExactly( path + folder, userID, 'zip' )).to.be.true;
+            return index.GET( userID, path + folder, data )
+            .then(( ) => {
+                expect( downloadSpy.calledOnce ).to.be.true;
+                expect( downloadSpy.calledWithExactly( path + folder, userID, 'zip' )).to.be.true;
+            });
         });
     });
 });
@@ -289,10 +298,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + file, data );
-
-            expect( createSpy.calledOnce ).to.be.true;
-            expect( createSpy.calledWithExactly( path + file, userID, data.parameters.content, [ ])).to.be.true;
+            return index.POST( userID, path + file, data )
+            .then(( ) => {
+                expect( createSpy.calledOnce ).to.be.true;
+                expect( createSpy.calledWithExactly( path + file, userID, data.parameters.content, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.create() with a non-empty path to a file and content, and pass the -f flag', () => {
@@ -305,10 +315,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + file, data );
-
-            expect( createSpy.calledOnce ).to.be.true;
-            expect( createSpy.calledWithExactly( path + file, userID, data.parameters.content, data.parameters.flags )).to.be.true;
+            return index.POST( userID, path + file, data )
+            .then(( ) => {
+                expect( createSpy.calledOnce ).to.be.true;
+                expect( createSpy.calledWithExactly( path + file, userID, data.parameters.content, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -344,10 +355,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + folder, data );
-
-            expect( bulkSpy.calledOnce ).to.be.true;
-            expect( bulkSpy.calledWithExactly( path + folder, userID, data.parameters.resources, [ ])).to.be.true;
+            return index.POST( userID, path + folder, data )
+            .then(( ) => {
+                expect( bulkSpy.calledOnce ).to.be.true;
+                expect( bulkSpy.calledWithExactly( path + folder, userID, data.parameters.resources, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.bulk() with a non-empty path to a folder, an array of resources, and pass the -f flag', () => {
@@ -364,10 +376,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + folder, data );
-
-            expect( bulkSpy.calledOnce ).to.be.true;
-            expect( bulkSpy.calledWithExactly( path + folder, userID, data.parameters.resources, data.parameters.flags )).to.be.true;
+            return index.POST( userID, path + folder, data )
+            .then(( ) => {
+                expect( bulkSpy.calledOnce ).to.be.true;
+                expect( bulkSpy.calledWithExactly( path + folder, userID, data.parameters.resources, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -400,10 +413,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + file, data );
-
-            expect( copySpy.calledOnce ).to.be.true;
-            expect( copySpy.calledWithExactly( path + file, userID, data.parameters.destination, [ ])).to.be.true;
+            return index.POST( userID, path + file, data )
+            .then(( ) => {
+                expect( copySpy.calledOnce ).to.be.true;
+                expect( copySpy.calledWithExactly( path + file, userID, data.parameters.destination, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.copy() with a non-empty path to a file, a destination, and pass the -u, and -f flags', () => {
@@ -417,10 +431,11 @@ describe( 'POST API', () => {
                 },
             };
 
-            index.POST( userID, path + file, data );
-
-            expect( copySpy.calledOnce ).to.be.true;
-            expect( copySpy.calledWithExactly( path + file, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
+            return index.POST( userID, path + file, data )
+            .then(( ) => {
+                expect( copySpy.calledOnce ).to.be.true;
+                expect( copySpy.calledWithExactly( path + file, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
+            });
         });
     });
 });
@@ -468,10 +483,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + file, userID, data.parameters.content, [ ])).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( updateSpy.calledOnce ).to.be.true;
+                expect( updateSpy.calledWithExactly( path + file, userID, data.parameters.content, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.update() with a non-empty path to a file, and content, and pass the -f flag', () => {
@@ -484,10 +500,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( updateSpy.calledOnce ).to.be.true;
-            expect( updateSpy.calledWithExactly( path + file, userID, data.parameters.content, data.parameters.flags )).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( updateSpy.calledOnce ).to.be.true;
+                expect( updateSpy.calledWithExactly( path + file, userID, data.parameters.content, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -519,10 +536,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( moveSpy.calledOnce ).to.be.true;
-            expect( moveSpy.calledWithExactly( path + file, userID, data.parameters.destination, [ ])).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( moveSpy.calledOnce ).to.be.true;
+                expect( moveSpy.calledWithExactly( path + file, userID, data.parameters.destination, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.move() with a non-empty path to a file, a destination, and passed the -f flag', () => {
@@ -536,10 +554,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( moveSpy.calledOnce ).to.be.true;
-            expect( moveSpy.calledWithExactly( path + file, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( moveSpy.calledOnce ).to.be.true;
+                expect( moveSpy.calledWithExactly( path + file, userID, data.parameters.destination, data.parameters.flags )).to.be.true;
+            });
         });
     });
 
@@ -571,10 +590,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( renameSpy.calledOnce ).to.be.true;
-            expect( renameSpy.calledWithExactly( path + file, userID, data.parameters.name, [ ])).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( renameSpy.calledOnce ).to.be.true;
+                expect( renameSpy.calledWithExactly( path + file, userID, data.parameters.name, [ ])).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.rename() with a non-empty path to a file, name, and passed the -f flag', () => {
@@ -588,10 +608,11 @@ describe( 'PUT API', () => {
                 },
             };
 
-            index.PUT( userID, path + file, data );
-
-            expect( renameSpy.calledOnce ).to.be.true;
-            expect( renameSpy.calledWithExactly( path + file, userID, data.parameters.name, data.parameters.flags )).to.be.true;
+            return index.PUT( userID, path + file, data )
+            .then(( ) => {
+                expect( renameSpy.calledOnce ).to.be.true;
+                expect( renameSpy.calledWithExactly( path + file, userID, data.parameters.name, data.parameters.flags )).to.be.true;
+            });
         });
     });
 });
@@ -602,20 +623,22 @@ describe( 'DELETE API', () => {
             const path = 'valid/path/here/';
             const file = 'goat.jpg';
 
-            index.DELETE( userID, path + file );
-
-            expect( destroySpy.calledOnce ).to.be.true;
-            expect( destroySpy.calledWithExactly( path + file, userID )).to.be.true;
+            return index.DELETE( userID, path + file )
+            .then(( ) => {
+                expect( destroySpy.calledOnce ).to.be.true;
+                expect( destroySpy.calledWithExactly( path + file, userID )).to.be.true;
+            });
         });
 
         it( 'should route to fsS3Mongo.destroy() with a non-empty path to a folder', () => {
             const path = 'valid/path/here/';
             const folder = 'folder/';
 
-            index.DELETE( userID, path + folder );
-
-            expect( destroySpy.calledOnce ).to.be.true;
-            expect( destroySpy.calledWithExactly( path + folder, userID )).to.be.true;
+            return index.DELETE( userID, path + folder )
+            .then(( ) => {
+                expect( destroySpy.calledOnce ).to.be.true;
+                expect( destroySpy.calledWithExactly( path + folder, userID )).to.be.true;
+            });
         });
     });
 });
