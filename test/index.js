@@ -13,8 +13,10 @@ const sinon = require( 'sinon' );
 const sinonchai = require( 'sinon-chai' );
 
 // TODO: Swap out stub for ingested module
-const index = require( '../src/index.js' );
-const fsS3Mongo = require( '../src/fs-s3-mongo-stub.js' );
+const index = require( '../src/index.js' )({
+    dataStore: require( '../src/fs-s3-mongo-stub.js' ),
+    permissions: require( '../src/brinkbit-permissions-stub.js' ),
+});
 
 chai.use( sinonchai );
 chai.use( chaiaspromised );
@@ -35,23 +37,23 @@ let renameSpy;
 let destroySpy;
 
 beforeEach(() => {
-    readSpy = sinon.spy( fsS3Mongo, 'read' );
-    searchSpy = sinon.spy( fsS3Mongo, 'search' );
-    inspectSpy = sinon.spy( fsS3Mongo, 'inspect' );
-    downloadSpy = sinon.spy( fsS3Mongo, 'download' );
-    createSpy = sinon.spy( fsS3Mongo, 'create' );
-    bulkSpy = sinon.spy( fsS3Mongo, 'bulk' );
-    copySpy = sinon.spy( fsS3Mongo, 'copy' );
-    updateSpy = sinon.spy( fsS3Mongo, 'update' );
-    moveSpy = sinon.spy( fsS3Mongo, 'move' );
-    renameSpy = sinon.spy( fsS3Mongo, 'rename' );
-    destroySpy = sinon.spy( fsS3Mongo, 'destroy' );
+    readSpy = sinon.spy( index.dataStore, 'read' );
+    searchSpy = sinon.spy( index.dataStore, 'search' );
+    inspectSpy = sinon.spy( index.dataStore, 'inspect' );
+    downloadSpy = sinon.spy( index.dataStore, 'download' );
+    createSpy = sinon.spy( index.dataStore, 'create' );
+    bulkSpy = sinon.spy( index.dataStore, 'bulk' );
+    copySpy = sinon.spy( index.dataStore, 'copy' );
+    updateSpy = sinon.spy( index.dataStore, 'update' );
+    moveSpy = sinon.spy( index.dataStore, 'move' );
+    renameSpy = sinon.spy( index.dataStore, 'rename' );
+    destroySpy = sinon.spy( index.dataStore, 'destroy' );
 });
 
 const actions = [ 'read', 'search', 'inspect', 'download', 'create', 'bulk', 'copy', 'update', 'move', 'rename', 'destroy' ];
 afterEach(() => {
     actions.forEach(( action ) => {
-        fsS3Mongo[action].restore();
+        index.dataStore[action].restore();
     });
 });
 
