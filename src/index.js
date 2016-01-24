@@ -15,8 +15,8 @@ module.exports = configuration => {
         permissions: permissions,
 
         GET: function GET( userId, fullPath, data ) {
-            if ( !fullPath || fullPath === '' ) {
-                return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
+            if ( !fullPath ) {
+                return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
             // READ
@@ -108,8 +108,8 @@ module.exports = configuration => {
         },
 
         POST: function GET( userId, fullPath, data ) {
-            if ( !fullPath || fullPath === '' ) {
-                return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
+            if ( !fullPath ) {
+                return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
             // CREATE
@@ -180,8 +180,8 @@ module.exports = configuration => {
         },
 
         PUT: function PUT( userId, fullPath, data ) {
-            if ( !fullPath || fullPath === '' ) {
-                return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
+            if ( !fullPath ) {
+                return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
 
@@ -254,8 +254,8 @@ module.exports = configuration => {
         },
 
         DELETE: function DELETE( userId, fullPath, data ) {
-            if ( !fullPath || fullPath === '' ) {
-                return Promise.reject( utils.errorResponse( 'INVALID_PATH_OR_RESOURCE' ));
+            if ( !fullPath ) {
+                return Promise.reject( utils.errorResponse( 'RESOURCE_NOT_FOUND' ));
             }
 
 

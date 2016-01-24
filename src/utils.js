@@ -2,9 +2,7 @@
 
 const errObject = {
     'NOT_ALLOWED': { status: 403, message: 'User does not have permission.' },
-    'INVALID_RESOURCE': { status: 404, message: 'Resource does not exist.' },
-    'INVALID_RESOURCE_PATH': { status: 404, message: 'Invalid path.' },
-    'INVALID_PATH_OR_RESOURCE': { status: 404, message: 'Invalid path or resource.' },
+    'RESOURCE_NOT_FOUND': { status: 404, message: 'Resource not found.' },
     'RESOURCE_EXISTS': { status: 409, message: 'Requested resource already exists.' },
     'REQUEST_DATA_TOO_LARGE': { status: 413, message: 'Request data too large.' },
     'INVALID_RESOUCE_TYPE': { status: 415, message: 'Invalid resource type.' },
@@ -27,7 +25,7 @@ module.exports.isValid = function isValid( fullPath ) {
 // If it has a trailing '/', then it's a directory.
 module.exports.isDirectory = function isDirectory( fullPath ) {
     if ( !module.exports.isValid( fullPath )) {
-        throw new Error( 'INVALID_RESOURCE' );
+        throw new Error( 'RESOURCE_NOT_FOUND' );
     }
 
     return fullPath === '/' || fullPath.split( '/' ).pop() === '';
