@@ -25,7 +25,7 @@ module.exports = configuration => {
             else if ( !data || !data.action || data.action === 'read' ) {
                 let err = null;
 
-                if ( !permissions.verify( userId, fullPath, 'read' )) {
+                if ( !permissions.verify( fullPath, userId, 'read' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -52,7 +52,7 @@ module.exports = configuration => {
                 else if ( !utils.isDirectory( fullPath )) {
                     err = 'INVALID_RESOUCE_TYPE';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'search' )) {
+                else if ( !permissions.verify( fullPath, userId, 'search' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -71,7 +71,7 @@ module.exports = configuration => {
             else if ( data.action === 'inspect' ) {
                 let err = null;
 
-                if ( !permissions.verify( userId, fullPath, 'inspect' )) {
+                if ( !permissions.verify( fullPath, userId, 'inspect' )) {
                     err = 'NOT_ALLOWED';
                 }
                 else if ( utils.isDirectory( fullPath )) {
@@ -93,7 +93,7 @@ module.exports = configuration => {
             else if ( data.action === 'download' ) {
                 let err = null;
 
-                if ( !permissions.verify( userId, fullPath, 'download' )) {
+                if ( !permissions.verify( fullPath, userId, 'download' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -121,7 +121,7 @@ module.exports = configuration => {
                 if ( !data.parameters || !data.parameters.content ) {
                     err = 'INVALID_PARAMETERS';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'create' )) {
+                else if ( !permissions.verify( fullPath, userId, 'create' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -144,7 +144,7 @@ module.exports = configuration => {
                 if ( !data.parameters || !data.parameters.resources ) {
                     err = 'INVALID_PARAMETERS';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'bulk' )) {
+                else if ( !permissions.verify( fullPath, userId, 'bulk' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -165,7 +165,7 @@ module.exports = configuration => {
                 if ( !data.parameters || !data.parameters.destination ) {
                     err = 'INVALID_PARAMETERS';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'copy' )) {
+                else if ( !permissions.verify( fullPath, userId, 'copy' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -197,7 +197,7 @@ module.exports = configuration => {
                 else if ( utils.isDirectory( fullPath )) {
                     err = 'INVALID_RESOUCE_TYPE';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'update' )) {
+                else if ( !permissions.verify( fullPath, userId, 'update' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -218,7 +218,7 @@ module.exports = configuration => {
                 if ( !data.parameters || !data.parameters.destination ) {
                     err = 'INVALID_PARAMETERS';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'move' )) {
+                else if ( !permissions.verify( fullPath, userId, 'move' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -239,7 +239,7 @@ module.exports = configuration => {
                 if ( !data.parameters || !data.parameters.name ) {
                     err = 'INVALID_PARAMETERS';
                 }
-                else if ( !permissions.verify( userId, fullPath, 'rename' )) {
+                else if ( !permissions.verify( fullPath, userId, 'rename' )) {
                     err = 'NOT_ALLOWED';
                 }
 
@@ -265,7 +265,7 @@ module.exports = configuration => {
             else if ( !data || !data.action || data.action === 'destroy' ) {
                 let err = null;
 
-                if ( !permissions.verify( userId, fullPath, 'destroy' )) {
+                if ( !permissions.verify( fullPath, userId, 'destroy' )) {
                     err = 'NOT_ALLOWED';
                 }
 
