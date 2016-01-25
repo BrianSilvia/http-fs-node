@@ -59,6 +59,24 @@ afterEach(() => {
     });
 });
 
+/* testing folder structure
+
+id: 1, path: /top/
+id: 2, path: /top/a.txt
+id: 3, path: /top/e.txt
+id: 4, path: /top/i.txt
+id: 5, path: /top/o.txt
+id: 6, path: /top/u.txt
+id: 7, path: /top/mid/
+id: 8, path: /top/mid/b.txt
+id: 9, path: /top/mid/c.txt
+id: 10, path: /top/mid/d.txt
+id: 11, path: /top/mid/f.txt
+id: 12, path: /top/mid/bottom/
+id: 13: path: /top/mid/bottom/z.txt
+
+*/
+
 describe( 'Top level routing', () => {
     it( 'should reject with a 404/resource not found error, with an empty path', () => {
         const GUID = '';
@@ -228,15 +246,31 @@ describe( 'GET API', () => {
     });
 });
 
-// TODO: tests for creating a folder
 describe( 'POST API', () => {
     describe( 'create:', () => {
-        it( 'should reject with 501/invalid parameters when parameters.content is missing', () => {
+        it( 'should reject with 501/invalid parameters when parameters.type is missing', () => {
             const GUID = '1';
             const data = {
                 parameters: {
-                    noContent: '',
+                    content: 'This is a testing file',
                     name: 'test.txt',
+                },
+            };
+
+            return expect( index.POST( GUID, userId, data )).to.be.rejected
+                .and.eventually.deep.equal({
+                    status: 501,
+                    message: 'Invalid parameters.',
+                });
+        });
+
+        it( 'should reject with 501/invalid parameters when parameters.type is anything other than file or folder', () => {
+            const GUID = '1';
+            const data = {
+                parameters: {
+                    content: 'This is a testing file',
+                    name: 'test.txt',
+                    type: 'notAFileOrFolder',
                 },
             };
 
@@ -251,7 +285,8 @@ describe( 'POST API', () => {
             const GUID = '1';
             const data = {
                 parameters: {
-                    content: '',
+                    type: 'file',
+                    content: 'This is a testing file.',
                 },
             };
 
@@ -262,36 +297,74 @@ describe( 'POST API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.create() with a GUID and content', () => {
+        it( 'should reject with 501/invalid parameters when parameters.content is set and type is folder', () => {
+            const GUID = '1';
+            const data = {
+                parameters: {
+                    type: 'folder',
+                    name: 'test.txt',
+                    content: 'This is invalid content for a folder.',
+                },
+            };
+
+            return expect( index.POST( GUID, userId, data )).to.be.rejected
+                .and.eventually.deep.equal({
+                    status: 501,
+                    message: 'Invalid parameters.',
+                });
+        });
+
+        it( 'should route to fsS3Mongo.create() with a GUID, file type, name and content', () => {
             const GUID = '1';
             const data = {
                 parameters: {
                     content: 'this content string',
                     name: 'test.txt',
+                    type: 'file',
                 },
             };
+            const params = data.parameters;
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
                 expect( createSpy.calledOnce ).to.be.true;
-                expect( createSpy.calledWithExactly( GUID, data.parameters.name, data.parameters.content, [ ])).to.be.true;
+                expect( createSpy.calledWithExactly( GUID, params.type, params.name, params.content, [ ])).to.be.true;
             });
         });
 
-        it( 'should route to fsS3Mongo.create() with a GUID, content, and pass the -f flag', () => {
+        it( 'should route to fsS3Mongo.create() with a GUID, file type, name, content, and pass the -f flag', () => {
             const GUID = '1';
             const data = {
                 parameters: {
                     content: 'this content string',
                     name: 'test.txt',
+                    type: 'file',
                     flags: ['f'],
                 },
             };
+            const params = data.parameters;
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
                 expect( createSpy.calledOnce ).to.be.true;
-                expect( createSpy.calledWithExactly( GUID, data.parameters.name, data.parameters.content, data.parameters.flags )).to.be.true;
+                expect( createSpy.calledWithExactly( GUID, params.type, params.name, params.content, data.parameters.flags )).to.be.true;
+            });
+        });
+
+        it( 'should route to fsS3Mongo.create() with a GUID, folder type, and name', () => {
+            const GUID = '1';
+            const data = {
+                parameters: {
+                    name: 'test.txt',
+                    type: 'folder',
+                },
+            };
+            const params = data.parameters;
+
+            return index.POST( GUID, userId, data )
+            .then(( ) => {
+                expect( createSpy.calledOnce ).to.be.true;
+                expect( createSpy.calledWithExactly( GUID, params.type, params.name, null, [ ])).to.be.true;
             });
         });
     });

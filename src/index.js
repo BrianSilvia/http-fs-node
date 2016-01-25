@@ -118,16 +118,19 @@ module.exports = configuration => {
             // Required parameters: content (multi-part form upload)
             // Optional parameters: NONE
             else if ( !data || !data.action || data.action === 'create' ) {
+                const params = data ? data.parameters : null;
+
                 return Promise.resolve()
                 .then(( ) => {
-                    if ( !data || !data.parameters || !data.parameters.content || !data.parameters.name ) {
+                    if ( !params || ( params.type !== 'file' && params.type !== 'folder' ) || !params.name || ( params.type === 'folder' && params.content )) {
                         return Promise.reject( 'INVALID_PARAMETERS' );
                     }
 
                     return permissions.verify( GUID, userId, 'create' );
                 })
                 .then(( ) => {
-                    return dataStore.create( GUID, data.parameters.name, data.parameters.content, getFlags( data ));
+                    const content = params.content || null;
+                    return dataStore.create( GUID, params.type, params.name, content, getFlags( data ));
                 })
                 .catch( err => {
                     return Promise.reject( utils.errorResponse( err ));
