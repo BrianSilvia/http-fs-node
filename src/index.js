@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: Update Bulk once API is finalized
+
 const utils = require( './utils.js' );
 
 function getFlags( data ) {
