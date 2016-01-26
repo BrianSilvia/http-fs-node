@@ -3,12 +3,8 @@
 /* eslint-env mocha */
 /* eslint no-unused-expressions: 0 */
 /* eslint new-cap: 0 */
-/* eslint no-undef: 0 */
-/* eslint no-unused-vars: 0 */
 
-// TODO: fix wrapping-already-wrapped functions
 // TODO: add tests for normalized flags
-// TODO: update fsS3Mongo functions with correct params
 
 const chai = require( 'chai' );
 const expect = chai.expect;
@@ -134,7 +130,7 @@ describe( 'GET API', () => {
         });
     });
 
-    describe( 'SEARCH', () => {
+    describe( 'search:', () => {
         it( 'should reject with 501/invalid parameters when parameters.query is missing', () => {
             const GUID = '1';
             const data = {
@@ -176,7 +172,6 @@ describe( 'GET API', () => {
                     flags: ['r'],
                 },
             };
-            const spy = sinon.spy( get, 'search' );
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
@@ -195,9 +190,6 @@ describe( 'GET API', () => {
                     flags: ['r'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'search' );
-
-            index.handleRequest( 'GET', path + resource, data );
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
@@ -225,6 +217,9 @@ describe( 'GET API', () => {
             const GUID = '1';
             const data = {
                 action: 'inspect',
+                parameters: {
+                    fields: [ 'name', 'parent' ],
+                },
             };
 
             return index.GET( GUID, userId, data )
@@ -241,9 +236,6 @@ describe( 'GET API', () => {
             const data = {
                 action: 'download',
             };
-            // const spy = sinon.spy( fsS3Mongo, 'read' );
-
-            index.handleRequest( 'GET', path + resource, data );
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
@@ -314,9 +306,6 @@ describe( 'POST API', () => {
                     content: 'This is invalid content for a folder.',
                 },
             };
-            const spy = sinon.spy( post, 'create' );
-
-            index.handleRequest( 'POST', path + resource, data );
 
             return expect( index.POST( GUID, userId, data )).to.be.rejected
                 .and.eventually.deep.equal({
@@ -380,7 +369,8 @@ describe( 'POST API', () => {
         });
     });
 
-    describe( 'BULK', () => {
+    // TODO: Add additional validation tests for bulk()
+    describe( 'bulk:', () => {
         it( 'should reject with 501/invalid parameters when parameters.resources is missing', () => {
             const GUID = '1';
             const data = {
@@ -408,9 +398,6 @@ describe( 'POST API', () => {
                     },
                 },
             };
-            const spy = sinon.spy( post, 'bulk' );
-
-            index.handleRequest( 'POST', path + resource, data );
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
@@ -428,6 +415,7 @@ describe( 'POST API', () => {
                         'another_cat_picture': 'raw image data',
                         'the_best_cats/': null,
                     },
+                    flags: ['f'],
                 },
             };
 
@@ -439,7 +427,8 @@ describe( 'POST API', () => {
         });
     });
 
-    describe( 'COPY', () => {
+    // TODO: Add tests for the different flag combinations
+    describe( 'copy:', () => {
         it( 'should reject with 501/invalid parameters when parameters.destination is missing', () => {
             const GUID = '2';
             const data = {
@@ -464,9 +453,6 @@ describe( 'POST API', () => {
                     destination: '3',
                 },
             };
-            const spy = sinon.spy( post, 'copy' );
-
-            index.handleRequest( 'POST', path + resource, data );
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
@@ -484,7 +470,6 @@ describe( 'POST API', () => {
                     flags: [ 'u', 'f' ],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'copy' );
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
@@ -495,8 +480,8 @@ describe( 'POST API', () => {
     });
 });
 
-describe( 'PUT Actions', () => {
-    describe( 'UPDATE', () => {
+describe( 'PUT API', () => {
+    describe( 'update:', () => {
         it( 'should reject with 501/invalid parameters when parameters.content is missing', () => {
             const GUID = '2';
             const data = {
@@ -519,9 +504,6 @@ describe( 'PUT Actions', () => {
                     content: 'this new content string',
                 },
             };
-            const spy = sinon.spy( put, 'update' );
-
-            index.handleRequest( 'PUT', path + resource, data );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -535,9 +517,9 @@ describe( 'PUT Actions', () => {
             const data = {
                 parameters: {
                     content: 'this content string',
+                    flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'update' );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -547,7 +529,7 @@ describe( 'PUT Actions', () => {
         });
     });
 
-    describe( 'MOVE', () => {
+    describe( 'move:', () => {
         it( 'should reject with 501/invalid parameters when parameters.destination is missing', () => {
             const GUID = '2';
             const data = {
@@ -572,9 +554,6 @@ describe( 'PUT Actions', () => {
                     destination: '3',
                 },
             };
-            const spy = sinon.spy( put, 'move' );
-
-            index.handleRequest( 'PUT', path + resource, data );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -592,7 +571,6 @@ describe( 'PUT Actions', () => {
                     flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'move' );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -602,7 +580,7 @@ describe( 'PUT Actions', () => {
         });
     });
 
-    describe( 'RENAME', () => {
+    describe( 'rename:', () => {
         it( 'should reject with 501/invalid parameters when parameters.name is missing', () => {
             const GUID = '2';
             const data = {
@@ -627,9 +605,6 @@ describe( 'PUT Actions', () => {
                     name: 'billyGoat.jpg',
                 },
             };
-            const spy = sinon.spy( put, 'rename' );
-
-            index.handleRequest( 'PUT', path + resource, data );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -647,9 +622,6 @@ describe( 'PUT Actions', () => {
                     flags: ['f'],
                 },
             };
-            const spy = sinon.spy( fsS3Mongo, 'rename' );
-
-            index.handleRequest( 'PUT', path + resource, data );
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
@@ -671,59 +643,5 @@ describe( 'DELETE API', () => {
                 expect( destroySpy.calledWithExactly( GUID )).to.be.true;
             });
         });
-
-        it( 'should ultimately route to fsS3Mongo.destroy() with a valid path and resource', () => {
-            const path = 'valid/path/here/';
-            const resource = 'goat.jpg';
-
-            const spy = sinon.spy( fsS3Mongo, '_destroy' );
-
-            index.handleRequest( 'DELETE', path + resource );
-
-            expect( spy.calledOnce ).to.be.true;
-            expect( spy.calledWithExactly( path + resource )).to.be.true;
-
-            fsS3Mongo._destroy.restore();
-        });
-    });
-});
-
-describe( 'Top level routing', () => {
-    it( 'should return a 404/invalid path or resource with an empty path', () => {
-        const path = '';
-
-        index.handleRequest( 'GET', path );
-
-        return expect( index.handleRequest( 'GET', path )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 404,
-                message: 'Invalid path or resource.',
-            });
-    });
-
-    it( 'should return a 404/invalid path or resource with a null path', () => {
-        const path = null;
-
-        index.handleRequest( 'GET', path );
-
-        return expect( index.handleRequest( 'GET', path )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 404,
-                message: 'Invalid path or resource.',
-            });
-    });
-
-    it( 'should return a 501/invalid action object when given an invalid action', () => {
-        const path = 'valid/path/here/';
-        const resource = 'test.txt';
-        const data = {
-            action: 'invalidAction',
-        };
-
-        return expect( index.handleRequest( 'GET', path + resource, data )).to.be.rejected
-            .and.eventually.deep.equal({
-                status: 501,
-                message: 'Invalid action.',
-            });
     });
 });
