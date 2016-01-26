@@ -2,11 +2,10 @@
 
 // TODO: Update Bulk once API is finalized
 
-const utils = require( './utils.js' );
+/* eslint no-unused-vars: 0 */
+/* eslint no-undef: 0 */
 
-function getFlags( data ) {
-    return ( data && data.parameters && data.parameters.flags ) ? data.parameters.flags : [];
-}
+const utils = require( './utils.js' );
 
 module.exports = configuration => {
     const dataStore = configuration.dataStore;
