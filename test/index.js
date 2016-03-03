@@ -104,7 +104,7 @@ describe( 'Top level routing', () => {
 
 describe( 'GET API', () => {
     describe( 'read:', () => {
-        it( 'should route to fsS3Mongo.read() with a GUID by default', () => {
+        it( 'should route to dataStore.read() with a GUID by default', () => {
             const GUID = '2';
 
             return index.GET( GUID, userId )
@@ -116,7 +116,7 @@ describe( 'GET API', () => {
     });
 
     describe( 'alias:', () => {
-        it( 'should route to fsS3Mongo.alias() with a fullPath', () => {
+        it( 'should route to dataStore.alias() with a fullPath', () => {
             const fullPath = '/valid/path/here/test.txt';
             const data = {
                 action: 'alias',
@@ -147,7 +147,7 @@ describe( 'GET API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.search() with a GUID, a non-empty query, and no flags', () => {
+        it( 'should route to dataStore.search() with a GUID, a non-empty query, and no flags', () => {
             const GUID = '1';
             const data = {
                 action: 'search',
@@ -163,7 +163,7 @@ describe( 'GET API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.search() with a GUID, a non-empty query and pass the -r flag', () => {
+        it( 'should route to dataStore.search() with a GUID, a non-empty query and pass the -r flag', () => {
             const GUID = '1';
             const data = {
                 action: 'search',
@@ -180,7 +180,7 @@ describe( 'GET API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.search() with a GUID, a non-empty query, sorting, and the -r flag', () => {
+        it( 'should route to dataStore.search() with a GUID, a non-empty query, sorting, and the -r flag', () => {
             const GUID = '1';
             const data = {
                 action: 'search',
@@ -200,7 +200,7 @@ describe( 'GET API', () => {
     });
 
     describe( 'inspect:', () => {
-        it( 'should route to fsS3Mongo.inspect() with a GUID', () => {
+        it( 'should route to dataStore.inspect() with a GUID', () => {
             const GUID = '2';
             const data = {
                 action: 'inspect',
@@ -213,7 +213,7 @@ describe( 'GET API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.inspect() with a GUID, including any specified fields', () => {
+        it( 'should route to dataStore.inspect() with a GUID, including any specified fields', () => {
             const GUID = '1';
             const data = {
                 action: 'inspect',
@@ -231,7 +231,7 @@ describe( 'GET API', () => {
     });
 
     describe( 'download:', () => {
-        it( 'should route to fsS3Mongo.download() with a GUID', () => {
+        it( 'should route to dataStore.download() with a GUID', () => {
             const GUID = '1';
             const data = {
                 action: 'download',
@@ -314,7 +314,7 @@ describe( 'POST API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.create() with a GUID, file type, name and content', () => {
+        it( 'should route to dataStore.create() with a GUID, file type, name and content', () => {
             const GUID = '1';
             const data = {
                 parameters: {
@@ -332,7 +332,7 @@ describe( 'POST API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.create() with a GUID, file type, name, content, and pass the -f flag', () => {
+        it( 'should route to dataStore.create() with a GUID, file type, name, content, and pass the -f flag', () => {
             const GUID = '1';
             const data = {
                 parameters: {
@@ -351,7 +351,7 @@ describe( 'POST API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.create() with a GUID, folder type, and name', () => {
+        it( 'should route to dataStore.create() with a GUID, folder type, and name', () => {
             const GUID = '1';
             const data = {
                 parameters: {
@@ -387,7 +387,7 @@ describe( 'POST API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.bulk() with a GUID, and an array of resources', () => {
+        it( 'should route to dataStore.bulk() with a GUID, and an array of resources', () => {
             const GUID = '1';
             const data = {
                 action: 'bulk',
@@ -406,7 +406,7 @@ describe( 'POST API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.bulk() with a GUID, an array of resources, and pass the -f flag', () => {
+        it( 'should route to dataStore.bulk() with a GUID, an array of resources, and pass the -f flag', () => {
             const GUID = '1';
             const data = {
                 action: 'bulk',
@@ -445,7 +445,7 @@ describe( 'POST API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.copy() with a resource GUID and destination GUID', () => {
+        it( 'should route to dataStore.copy() with a resource GUID and destination GUID', () => {
             const GUID = '2';
             const data = {
                 action: 'copy',
@@ -461,7 +461,7 @@ describe( 'POST API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.copy() with a GUID, a destination GUID, and pass the -u, and -f flags', () => {
+        it( 'should route to dataStore.copy() with a GUID, a destination GUID, and pass the -u, and -f flags', () => {
             const GUID = '2';
             const data = {
                 action: 'copy',
@@ -497,7 +497,7 @@ describe( 'PUT API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.update() with a GUID and content', () => {
+        it( 'should route to dataStore.update() with a GUID and content', () => {
             const GUID = '2';
             const data = {
                 parameters: {
@@ -512,7 +512,7 @@ describe( 'PUT API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.update() with a GUID, content, and pass the -f flag', () => {
+        it( 'should route to dataStore.update() with a GUID, content, and pass the -f flag', () => {
             const GUID = '2';
             const data = {
                 parameters: {
@@ -546,7 +546,7 @@ describe( 'PUT API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.move() with a GUID and destination', () => {
+        it( 'should route to dataStore.move() with a GUID and destination', () => {
             const GUID = '2';
             const data = {
                 action: 'move',
@@ -562,7 +562,7 @@ describe( 'PUT API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.move() with a GUID, a destination, and the -f flag', () => {
+        it( 'should route to dataStore.move() with a GUID, a destination, and the -f flag', () => {
             const GUID = '2';
             const data = {
                 action: 'move',
@@ -597,7 +597,7 @@ describe( 'PUT API', () => {
                 });
         });
 
-        it( 'should route to fsS3Mongo.rename() with a GUID and name', () => {
+        it( 'should route to dataStore.rename() with a GUID and name', () => {
             const GUID = '2';
             const data = {
                 action: 'rename',
@@ -613,7 +613,7 @@ describe( 'PUT API', () => {
             });
         });
 
-        it( 'should route to fsS3Mongo.rename() with a GUID, a name, and the -f flag', () => {
+        it( 'should route to dataStore.rename() with a GUID, a name, and the -f flag', () => {
             const GUID = '2';
             const data = {
                 action: 'rename',
@@ -634,7 +634,7 @@ describe( 'PUT API', () => {
 
 describe( 'DELETE API', () => {
     describe( 'destroy:', () => {
-        it( 'should route to fsS3Mongo.destroy() with a GUID', () => {
+        it( 'should route to dataStore.destroy() with a GUID', () => {
             const GUID = '2';
 
             return index.DELETE( GUID )
