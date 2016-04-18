@@ -13,10 +13,9 @@ const sinon = require( 'sinon' );
 const sinonchai = require( 'sinon-chai' );
 
 // TODO: Swap out stub for ingested module
-const index = require( '../src/index.js' )({
-    dataStore: require( '../src/fs-s3-mongo-stub.js' ),
-    permissions: require( '../src/brinkbit-permissions-stub.js' ),
-});
+const dataStore = require( './mocks/fs-s3-mongo-stub.js' );
+const permissions = require( './mocks/brinkbit-permissions-stub.js' );
+const index = require( '../src/index.js' )({ dataStore, permissions });
 
 chai.use( sinonchai );
 chai.use( chaiaspromised );
@@ -38,24 +37,24 @@ let renameSpy;
 let destroySpy;
 
 beforeEach(() => {
-    readSpy = sinon.spy( index.dataStore, 'read' );
-    aliasSpy = sinon.spy( index.dataStore, 'alias' );
-    searchSpy = sinon.spy( index.dataStore, 'search' );
-    inspectSpy = sinon.spy( index.dataStore, 'inspect' );
-    downloadSpy = sinon.spy( index.dataStore, 'download' );
-    createSpy = sinon.spy( index.dataStore, 'create' );
-    bulkSpy = sinon.spy( index.dataStore, 'bulk' );
-    copySpy = sinon.spy( index.dataStore, 'copy' );
-    updateSpy = sinon.spy( index.dataStore, 'update' );
-    moveSpy = sinon.spy( index.dataStore, 'move' );
-    renameSpy = sinon.spy( index.dataStore, 'rename' );
-    destroySpy = sinon.spy( index.dataStore, 'destroy' );
+    readSpy = sinon.spy( dataStore, 'read' );
+    aliasSpy = sinon.spy( dataStore, 'alias' );
+    searchSpy = sinon.spy( dataStore, 'search' );
+    inspectSpy = sinon.spy( dataStore, 'inspect' );
+    downloadSpy = sinon.spy( dataStore, 'download' );
+    createSpy = sinon.spy( dataStore, 'create' );
+    bulkSpy = sinon.spy( dataStore, 'bulk' );
+    copySpy = sinon.spy( dataStore, 'copy' );
+    updateSpy = sinon.spy( dataStore, 'update' );
+    moveSpy = sinon.spy( dataStore, 'move' );
+    renameSpy = sinon.spy( dataStore, 'rename' );
+    destroySpy = sinon.spy( dataStore, 'destroy' );
 });
 
 const actions = [ 'read', 'alias', 'search', 'inspect', 'download', 'create', 'bulk', 'copy', 'update', 'move', 'rename', 'destroy' ];
 afterEach(() => {
     actions.forEach( action => {
-        index.dataStore[action].restore();
+        dataStore[action].restore();
     });
 });
 
@@ -81,10 +80,10 @@ describe( 'Top level routing', () => {
     it( 'should reject with a 404/resource not found error, with an empty path', () => {
         const GUID = '';
 
-        return expect( index.GET( GUID, userId )).to.be.rejected
+        return expect( index.GET( GUID, userId, null )).to.be.rejected
             .and.eventually.deep.equal({
                 status: 404,
-                message: 'Resource not found.',
+                message: 'Resource does not exist.',
             });
     });
 
@@ -107,10 +106,10 @@ describe( 'GET API', () => {
         it( 'should route to dataStore.read() with a GUID by default', () => {
             const GUID = '2';
 
-            return index.GET( GUID, userId )
+            return index.GET( GUID, userId, null )
             .then(( ) => {
-                expect( readSpy.calledOnce ).to.be.true;
-                expect( readSpy.calledWithExactly( GUID, [ ])).to.be.true;
+                expect( readSpy ).to.have.been.calledOnce;
+                expect( readSpy ).to.have.been.calledWithExactly( GUID, [ ]);
             });
         });
     });
@@ -120,12 +119,13 @@ describe( 'GET API', () => {
             const fullPath = '/valid/path/here/test.txt';
             const data = {
                 action: 'alias',
+                rootId: '1234567',
             };
 
             return index.GET( fullPath, userId, data )
             .then(( ) => {
-                expect( aliasSpy.calledOnce ).to.be.true;
-                expect( aliasSpy.calledWithExactly( fullPath, userId )).to.be.true;
+                expect( aliasSpy ).to.have.been.calledOnce;
+                expect( aliasSpy ).to.have.been.calledWithExactly( fullPath, data );
             });
         });
     });
@@ -158,8 +158,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( searchSpy.calledOnce ).to.be.true;
-                expect( searchSpy.calledWithExactly( GUID, data.parameters.query, null, [ ])).to.be.true;
+                expect( searchSpy ).to.have.been.calledOnce;
+                expect( searchSpy ).to.have.been.calledWithExactly( GUID, data.parameters.query, null, [ ]);
             });
         });
 
@@ -175,8 +175,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( searchSpy.calledOnce ).to.be.true;
-                expect( searchSpy.calledWithExactly( GUID, data.parameters.query, null, data.parameters.flags )).to.be.true;
+                expect( searchSpy ).to.have.been.calledOnce;
+                expect( searchSpy ).to.have.been.calledWithExactly( GUID, data.parameters.query, null, data.parameters.flags );
             });
         });
 
@@ -193,8 +193,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( searchSpy.calledOnce ).to.be.true;
-                expect( searchSpy.calledWithExactly( GUID, data.parameters.query, data.parameters.sort, data.parameters.flags )).to.be.true;
+                expect( searchSpy ).to.have.been.calledOnce;
+                expect( searchSpy ).to.have.been.calledWithExactly( GUID, data.parameters.query, data.parameters.sort, data.parameters.flags );
             });
         });
     });
@@ -208,8 +208,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( inspectSpy.calledOnce ).to.be.true;
-                expect( inspectSpy.calledWithExactly( GUID, null )).to.be.true;
+                expect( inspectSpy ).to.have.been.calledOnce;
+                expect( inspectSpy ).to.have.been.calledWithExactly( GUID, null );
             });
         });
 
@@ -224,8 +224,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( inspectSpy.calledOnce ).to.be.true;
-                expect( inspectSpy.calledWithExactly( GUID, data.parameters.fields )).to.be.true;
+                expect( inspectSpy ).to.have.been.calledOnce;
+                expect( inspectSpy ).to.have.been.calledWithExactly( GUID, data.parameters.fields );
             });
         });
     });
@@ -239,8 +239,8 @@ describe( 'GET API', () => {
 
             return index.GET( GUID, userId, data )
             .then(( ) => {
-                expect( downloadSpy.calledOnce ).to.be.true;
-                expect( downloadSpy.calledWithExactly( GUID, 'zip' )).to.be.true;
+                expect( downloadSpy ).to.have.been.calledOnce;
+                expect( downloadSpy ).to.have.been.calledWithExactly( GUID, 'zip' );
             });
         });
     });
@@ -327,8 +327,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( createSpy.calledOnce ).to.be.true;
-                expect( createSpy.calledWithExactly( GUID, params.type, params.name, params.content, [ ])).to.be.true;
+                expect( createSpy ).to.have.been.calledOnce;
+                expect( createSpy ).to.have.been.calledWithExactly( GUID, params.type, params.name, params.content, [ ]);
             });
         });
 
@@ -346,8 +346,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( createSpy.calledOnce ).to.be.true;
-                expect( createSpy.calledWithExactly( GUID, params.type, params.name, params.content, data.parameters.flags )).to.be.true;
+                expect( createSpy ).to.have.been.calledOnce;
+                expect( createSpy ).to.have.been.calledWithExactly( GUID, params.type, params.name, params.content, data.parameters.flags );
             });
         });
 
@@ -363,8 +363,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( createSpy.calledOnce ).to.be.true;
-                expect( createSpy.calledWithExactly( GUID, params.type, params.name, null, [ ])).to.be.true;
+                expect( createSpy ).to.have.been.calledOnce;
+                expect( createSpy ).to.have.been.calledWithExactly( GUID, params.type, params.name, undefined, [ ]);
             });
         });
     });
@@ -401,8 +401,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( bulkSpy.calledOnce ).to.be.true;
-                expect( bulkSpy.calledWithExactly( GUID, data.parameters.resources, [ ])).to.be.true;
+                expect( bulkSpy ).to.have.been.calledOnce;
+                expect( bulkSpy ).to.have.been.calledWithExactly( GUID, data.parameters.resources, [ ]);
             });
         });
 
@@ -421,8 +421,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( bulkSpy.calledOnce ).to.be.true;
-                expect( bulkSpy.calledWithExactly( GUID, data.parameters.resources, data.parameters.flags )).to.be.true;
+                expect( bulkSpy ).to.have.been.calledOnce;
+                expect( bulkSpy ).to.have.been.calledWithExactly( GUID, data.parameters.resources, data.parameters.flags );
             });
         });
     });
@@ -456,8 +456,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( copySpy.calledOnce ).to.be.true;
-                expect( copySpy.calledWithExactly( GUID, data.parameters.destination, [ ])).to.be.true;
+                expect( copySpy ).to.have.been.calledOnce;
+                expect( copySpy ).to.have.been.calledWithExactly( GUID, data.parameters.destination, [ ]);
             });
         });
 
@@ -473,8 +473,8 @@ describe( 'POST API', () => {
 
             return index.POST( GUID, userId, data )
             .then(( ) => {
-                expect( copySpy.calledOnce ).to.be.true;
-                expect( copySpy.calledWithExactly( GUID, data.parameters.destination, data.parameters.flags )).to.be.true;
+                expect( copySpy ).to.have.been.calledOnce;
+                expect( copySpy ).to.have.been.calledWithExactly( GUID, data.parameters.destination, data.parameters.flags );
             });
         });
     });
@@ -507,8 +507,8 @@ describe( 'PUT API', () => {
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
-                expect( updateSpy.calledOnce ).to.be.true;
-                expect( updateSpy.calledWithExactly( GUID, data.parameters.content, [ ])).to.be.true;
+                expect( updateSpy ).to.have.been.calledOnce;
+                expect( updateSpy ).to.have.been.calledWithExactly( GUID, data.parameters.content, [ ]);
             });
         });
 
@@ -523,8 +523,8 @@ describe( 'PUT API', () => {
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
-                expect( updateSpy.calledOnce ).to.be.true;
-                expect( updateSpy.calledWithExactly( GUID, data.parameters.content, data.parameters.flags )).to.be.true;
+                expect( updateSpy ).to.have.been.calledOnce;
+                expect( updateSpy ).to.have.been.calledWithExactly( GUID, data.parameters.content, data.parameters.flags );
             });
         });
     });
@@ -557,8 +557,8 @@ describe( 'PUT API', () => {
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
-                expect( moveSpy.calledOnce ).to.be.true;
-                expect( moveSpy.calledWithExactly( GUID, data.parameters.destination, [ ])).to.be.true;
+                expect( moveSpy ).to.have.been.calledOnce;
+                expect( moveSpy ).to.have.been.calledWithExactly( GUID, data.parameters.destination, [ ]);
             });
         });
 
@@ -608,8 +608,8 @@ describe( 'PUT API', () => {
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
-                expect( renameSpy.calledOnce ).to.be.true;
-                expect( renameSpy.calledWithExactly( GUID, data.parameters.name, [ ])).to.be.true;
+                expect( renameSpy ).to.have.been.calledOnce;
+                expect( renameSpy ).to.have.been.calledWithExactly( GUID, data.parameters.name, [ ]);
             });
         });
 
@@ -625,8 +625,8 @@ describe( 'PUT API', () => {
 
             return index.PUT( GUID, userId, data )
             .then(( ) => {
-                expect( renameSpy.calledOnce ).to.be.true;
-                expect( renameSpy.calledWithExactly( GUID, data.parameters.name, data.parameters.flags )).to.be.true;
+                expect( renameSpy ).to.have.been.calledOnce;
+                expect( renameSpy ).to.have.been.calledWithExactly( GUID, data.parameters.name, data.parameters.flags );
             });
         });
     });
@@ -637,10 +637,10 @@ describe( 'DELETE API', () => {
         it( 'should route to dataStore.destroy() with a GUID', () => {
             const GUID = '2';
 
-            return index.DELETE( GUID )
+            return index.DELETE( GUID, null, null )
             .then(( ) => {
-                expect( destroySpy.calledOnce ).to.be.true;
-                expect( destroySpy.calledWithExactly( GUID )).to.be.true;
+                expect( destroySpy ).to.have.been.calledOnce;
+                expect( destroySpy ).to.have.been.calledWithExactly( GUID );
             });
         });
     });
