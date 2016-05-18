@@ -1,5 +1,7 @@
 'use strict';
 
+const logger = require( 'brinkbit-logger' )({ __filename, transport: 'production' });
+
 const errObject = {
     INVALID_RESOURCE: { status: 404, message: 'Resource does not exist.' },
     INVALID_RESOURCE_PATH: { status: 404, message: 'Invalid path.' },
@@ -13,19 +15,7 @@ const errObject = {
 };
 
 module.exports.errorResponse = function errorResponse( errorCode ) {
-    return errObject[errorCode] ? errObject[errorCode] : errObject.DEFAULT_SERVER_ERROR;
-};
-
-// Checks for null / empty string
-module.exports.isValid = function isValid( fullPath ) {
-    return ( !fullPath || !!fullPath.length );
-};
-
-// If it has a trailing '/', then it's a directory.
-module.exports.isDirectory = function isDirectory( fullPath ) {
-    if ( !module.exports.isValid( fullPath )) {
-        throw new Error( 'INVALID_RESOURCE' );
-    }
-
-    return fullPath === '/' || fullPath.split( '/' ).pop() === '';
+    const obj = errObject[errorCode] ? errObject[errorCode] : errObject.DEFAULT_SERVER_ERROR;
+    logger.error( `code: ${errorCode}, message: ${obj.message}` );
+    return obj;
 };
