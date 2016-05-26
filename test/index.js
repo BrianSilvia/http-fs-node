@@ -11,14 +11,28 @@ const expect = chai.expect;
 const chaiaspromised = require( 'chai-as-promised' );
 const sinon = require( 'sinon' );
 const sinonchai = require( 'sinon-chai' );
-
-// TODO: Swap out stub for ingested module
-const dataStore = require( './mocks/fs-s3-mongo-stub.js' );
-const permissions = require( './mocks/brinkbit-permissions-stub.js' );
-const index = require( '../src/index.js' )({ dataStore, permissions });
-
 chai.use( sinonchai );
 chai.use( chaiaspromised );
+
+const permissions = require( 'fs-brinkbit-permissions' );
+let index;
+let dataStore;
+before(( done ) => {
+    require( 'fs-s3-mongo' )({
+        s3: {
+            bucket: process.env.AWS_TEST_BUCKET,
+            region: process.env.AWS_TEST_REGION,
+        },
+    })
+    .then( dataStore2 => {
+        dataStore = dataStore2;
+        index = require( '../src/index.js' )({ dataStore, permissions });
+    })
+    .then(() => {
+        done();
+    });
+});
+
 
 const userId = '12345';
 
@@ -43,7 +57,6 @@ beforeEach(() => {
     inspectSpy = sinon.spy( dataStore, 'inspect' );
     downloadSpy = sinon.spy( dataStore, 'download' );
     createSpy = sinon.spy( dataStore, 'create' );
-    bulkSpy = sinon.spy( dataStore, 'bulk' );
     copySpy = sinon.spy( dataStore, 'copy' );
     updateSpy = sinon.spy( dataStore, 'update' );
     moveSpy = sinon.spy( dataStore, 'move' );
@@ -51,7 +64,7 @@ beforeEach(() => {
     destroySpy = sinon.spy( dataStore, 'destroy' );
 });
 
-const actions = [ 'read', 'alias', 'search', 'inspect', 'download', 'create', 'bulk', 'copy', 'update', 'move', 'rename', 'destroy' ];
+const actions = [ 'read', 'alias', 'search', 'inspect', 'download', 'create', 'copy', 'update', 'move', 'rename', 'destroy' ];
 afterEach(() => {
     actions.forEach( action => {
         dataStore[action].restore();
@@ -370,7 +383,7 @@ describe( 'POST API', () => {
     });
 
     // TODO: Add additional validation tests for bulk()
-    describe( 'bulk:', () => {
+    describe.skip( 'bulk:', () => {
         it( 'should reject with 501/invalid parameters when parameters.resources is missing', () => {
             const GUID = '1';
             const data = {

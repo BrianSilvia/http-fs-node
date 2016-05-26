@@ -24,7 +24,9 @@
     "http-server": "^0.8.5",
     "mongoose": "^4.1.6",
     "ramda": "^0.19.1",
-    "s3": "^4.4.0"
+    "s3": "^4.4.0",
+    "fs-brinkbit-permissions": "git+https://github.com/Brinkbit/fs-brinkbit-permissions",
+    "fs-s3-mongo": "git+https://github.com/Brinkbit/fs-s3-mongo.git"
   },
   "pre-commit": [
     "eslint-pre-commit"
