@@ -10,9 +10,12 @@ function getFlags( data ) {
     return flags;
 }
 
-const alias = R.curry(( dataStore, GUID, data ) =>
-    dataStore.alias( GUID, data )
-);
+const alias = R.curry(( dataStore, GUID, data ) => {
+    const rootId = data && data.parameters && data.parameters.rootId ? data.parameters.rootId : null;
+    if ( !rootId ) return Promise.reject( 'INVALID_PARAMETERS' );
+    logger.info( `Calling dataStore.alias() with ${GUID} and ${rootId}` );
+    return dataStore.alias( GUID, rootId );
+});
 
 const read = R.curry(( dataStore, GUID, data ) =>
     dataStore.read( GUID, getFlags( data ))
@@ -42,15 +45,12 @@ const download = R.curry(( dataStore, GUID ) =>
 
 const create = R.curry(( dataStore, GUID, data ) => {
     const params = data.parameters;
-    if ( !params ||
-        ( params.type !== 'file' && params.type !== 'folder' ) ||
-        !params.name ||
-        ( params.type === 'folder' && params.content )
+    logger.info( `Create() has params: '${JSON.stringify( params )}'` );
+    if ( !params || !params.name || ( params.type === 'folder' && params.content )
     ) {
         return Promise.reject( 'INVALID_PARAMETERS' );
     }
 
-    logger.info( `Create: valid parameters, calling into dataStore for ${GUID}, with ${params}` );
     return dataStore.create( GUID, params.type, params.name, params.content, getFlags( data ));
 });
 
@@ -104,8 +104,8 @@ const takeAction = R.curry(( permissions, methods, GUID, userId, data ) => {
 
     logger.info( `Calling to verify, before invoking ${data.action}` );
     return Promise.resolve()
-    .then(( ) => permissions.verify( GUID, userId, data.action ))
-    .then(() => methods[ data.action ]( GUID, data ))
+    //  .then(( ) => permissions.verify( GUID, userId, data.action ))
+    .then(() => methods[data.action]( GUID, data ))
     .catch( err => Promise.reject( utils.errorResponse( err )));
 });
 
@@ -114,7 +114,7 @@ module.exports = configuration => {
     const dataStore = configuration.dataStore;
     const permissions = configuration.permissions;
 
-    logger.info( `Initializing module with ${JSON.stringify( configuration )}` );
+    logger.info( `Initializing module with ${configuration}` );
 
     const GET = {
         default: read( dataStore ),
