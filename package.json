@@ -45,7 +45,7 @@
     "sinon": "^1.16.1",
     "sinon-chai": "^2.8.0",
     "supertest": "^1.1.0",
-    "fs-brinkbit-permissions": "file:///Users/Brian/Documents/brinkbit/fs-brinkbit-permissions",
-    "fs-s3-mongo": "file:///Users/Brian/Documents/brinkbit/fs-s3-mongo"   
+    "fs-brinkbit-permissions": "Brinkbit/fs-brinkbit-permissions",
+    "fs-s3-mongo": "Brinkbit/fs-s3-mongo"
   }
 }
