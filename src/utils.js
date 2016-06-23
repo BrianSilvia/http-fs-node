@@ -1,6 +1,6 @@
 'use strict';
 
-const logger = require( 'brinkbit-logger' )({ __filename, transport: 'production' });
+const logger = require( 'brinkbit-logger' )({ __filename });
 
 const errObject = {
     INVALID_RESOURCE: { status: 404, message: 'Resource does not exist.' },
@@ -15,6 +15,7 @@ const errObject = {
 };
 
 module.exports.errorResponse = function errorResponse( errorCode ) {
+    logger.info( `errorCode: ${errorCode}` );
     const obj = errObject[errorCode] ? errObject[errorCode] : errObject.DEFAULT_SERVER_ERROR;
     logger.error( `code: ${errorCode}, message: ${obj.message}` );
     return obj;

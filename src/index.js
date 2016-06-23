@@ -2,11 +2,11 @@
 
 const R = require( 'ramda' ); // eslint-disable-line id-length
 const utils = require( './utils.js' );
-const logger = require( 'brinkbit-logger' )({ __filename, transport: 'production' });
+const logger = require( 'brinkbit-logger' )({ __filename });
 
 function getFlags( data ) {
     const flags = ( data && data.parameters && data.parameters.flags ) ? data.parameters.flags : [];
-    logger.info( `Flags for current operation: ${flags}` );
+    logger.info( `Flags for current operation: '${flags}'` );
     return flags;
 }
 
@@ -114,7 +114,7 @@ module.exports = configuration => {
     const dataStore = configuration.dataStore;
     const permissions = configuration.permissions;
 
-    logger.info( `Initializing module with ${configuration}` );
+    logger.info( `Initializing module with ${JSON.stringify( configuration )}` );
 
     const GET = {
         default: read( dataStore ),
